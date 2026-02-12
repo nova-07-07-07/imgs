@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSS Water App</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+</head>
+<body style="margin:0;font-family:Arial;background:#0c2132;color:white;">
+
+<!-- ================= GLOBAL SCRIPT ================= -->
+<script>
+function showScreen(id){
+    document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+    // document.getElementById(id).style.display="flex";
+    // if (id == "home") {
+    // document.getElementById(id).style.display="block";
+    // }
+    document.getElementById("home").style.display="block";
+}
+</script>
+
+
+<!-- ================= WELCOME SCREEN ================= -->
+<style>
+/* CSS for welcome */
+.welcome{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:28px;
+}
+</style>
+
+<div id="welcome" class="screen welcome">
+    <!-- HTML welcome -->
+    JSS Water Services
+</div>
+
+<script>
+// JS for welcome
+setTimeout(()=>showScreen("login"),2000);
+</script>
+
+
+<!-- ================= LOGIN SCREEN ================= -->
+<style>
+/* CSS for login */
+.login{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+}
+.login .box{
+    width:60%;
+    max-width:350px;
+    margin:auto;
+    background:#1a2a3a;
+    padding:25px;
+    border-radius:10px;
+    text-align:center;
+    justify-content: center;
+}
+.login input{
+    width:90%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:6px;
+}
+.login button{
+    width:100%;
+    padding:10px;
+    background:#00aaff;
+    color:white;
+}
+.link{
+    color:deepskyblue;
+    cursor:pointer;
+    margin-top:10px;
+}
+</style>
+
+<div id="login" class="screen login">
+    <!-- HTML login -->
+    <div class="box">
+        <h2>Login</h2>
+        <input id="loginId" placeholder="Id">
+        <input id="loginPass" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+
+        <div class="link" onclick="showScreen('signup')">
+            New user? Sign up
+        </div>
+    </div>
+</div>
+
+<script>
+// JS for login
+function login(){
+    const id=document.getElementById("loginId").value.trim();
+    const pass=document.getElementById("loginPass").value.trim();
+    const user=JSON.parse(localStorage.getItem("user"));
+
+    if(!user||id!==user.name||pass!==user.pass){
+        alert("Invalid login");
+        return;
+    }
+    showScreen("home");
+}
+</script>
+
+
+<!-- ================= SIGNUP SCREEN ================= -->
+<style>
+/* CSS for signup */
+.signup{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+}
+.signup .box{
+    width:60%;
+    max-width:350px;
+    margin:auto;
+    background:#1a2a3a;
+    padding:25px;
+    border-radius:10px;
+    text-align:center;
+}
+.signup input{
+    width:90%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:6px;
+    font: 1em sans-serif;
+}
+.signup button{
+    width:100%;
+    padding:10px;
+    background:#00aaff;
+    color:white;
+}
+#mapBox{
+    height:250px;
+    display:none;
+    margin-top:10px;
+    border-radius:10px;
+}
+</style>
+
+<div id="signup" class="screen signup">
+    <!-- HTML signup -->
+    <div class="box">
+        <h2>Sign Up</h2>
+        <input id="name" placeholder="Name">
+        <div style="display: flex;">
+            <input id="password" type="password" placeholder="Password">
+        <div id="btnText-log" style="width: 30px;margin-top: 3px;background-color: #79828600;font-size: 2rem;cursor: pointer;" onclick="togglePass()">🔒</div>
+        </div>
+        <button onclick="openMap()">Select Location</button>
+        <input id="address" placeholder="Coordinates" readonly>
+        <div id="mapBox"></div>
+
+        <button onclick="signup()">Create Account</button>
+        <div class="link" onclick="showScreen('login')">
+            Back to Login
+        </div>
+    </div>
+</div>
+
+<script>
+// JS for signup
+function signup(){
+    const name=document.getElementById("name").value.trim();
+    const pass=document.getElementById("password").value.trim();
+    const addr=document.getElementById("address").value.trim();
+
+    if(!name||!pass||!addr){
+        alert("Fill all fields");
+        return;
+    }
+
+    localStorage.setItem("user",JSON.stringify({name,pass,addr}));
+    alert("Signup Success");
+    showScreen("login");
+}
+
+function togglePass(){
+    const p=document.getElementById("password");
+    document.getElementById("btnText-log").innerText=p.type==="password"?"🔓":"🔒";
+    p.type=p.type==="password"?"text":"password";
+}
+
+/* MAP */
+let map,marker;
+const SALEM=[11.6076,78.0037];
+
+function openMap(){
+    document.getElementById("mapBox").style.display="block";
+    if(map)return;
+
+    map=L.map("mapBox").setView(SALEM,13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    marker=L.marker(SALEM,{draggable:true}).addTo(map);
+    setCoord(SALEM);
+
+    marker.on("dragend",()=>{
+        const c=marker.getLatLng();
+        setCoord([c.lat,c.lng]);
+    });
+
+    map.on("click",e=>{
+        marker.setLatLng(e.latlng);
+        setCoord([e.latlng.lat,e.latlng.lng]);
+    });
+}
+
+function setCoord(c){
+    document.getElementById("address").value=
+    c[0].toFixed(4)+", "+c[1].toFixed(4);
+}
+</script>
+
+<!-- ================= HOME SCREEN ================= -->
+<style>
+.topbar{
+    background:#0b5fa5;
+    padding:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:white;
+}
+.big-btn{
+    width:200px;
+    height:200px;
+    margin:40px auto;
+    background:#00d8ff ;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    border: solid 10px #1c1b1b;
+    align-items:center;
+    font-size:22px;
+    cursor:pointer;
+    color:rgb(111, 99, 99);
+    position:relative;
+}
+.bottombar{
+    width:100%;
+    padding:8px;
+}
+
+/* ===== Square Slideshow ===== */
+.slide-box{
+    width:100%;
+    max-width:300px;
+    aspect-ratio:1/1;
+    overflow:hidden;
+    margin:10px auto;
+    border-radius:12px;
+    position:relative;
+}
+.slide-track{
+    display:flex;
+    height:100%;
+    transition:transform 0.6s ease;
+}
+.slide-track img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    flex-shrink:0;
+}
+
+/* Loader */
+.loader::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 16px solid transparent;
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+#qty{ width:30px; text-align:center; font-size:16px;height: 30px; }
+#idbtn-l, #idbtn-r{ width:35px; height: 35px; font-size:16px;background-color: coral; }
+#idbtn-l{ border-radius: 50% 0 0 50%; }
+#idbtn-r{ border-radius: 0 50% 50% 0; }
+/* ===== Popup ===== */
+#popupOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    visibility:hidden;
+    opacity:0;
+    transition:opacity 0.3s ease;
+}
+#popupOverlay.active{
+    visibility:visible;
+    opacity:1;
+}
+.popupBox{
+    background:rgb(51, 51, 51);
+    color: #ffffff;
+    padding:25px;
+    border-radius:12px;
+    min-width:260px;
+    text-align:center;
+    transform:scale(0.8);
+    transition:transform 0.3s ease;
+}
+#popupOverlay.active .popupBox{
+    transform:scale(1);
+}
+button{
+    padding:6px 12px;
+    margin:4px;
+}
+.popupBox{
+    background:rgb(54, 54, 54);
+    padding:25px;
+    border-radius:12px;
+    min-width:260px;
+    text-align:center;
+    transform:scale(0.8);
+    transition:transform 0.3s ease;
+    color:#ffffff;              /* ensure text visible */
+}
+
+/* message style */
+#popupMessage{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:15px;
+    color:#ffffff;
+}
+.truck-box{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.truck-box img{
+    width:90px;
+    height:auto;
+}
+#cartScreen, #profileScreen{
+    max-width:400px;
+    margin:20px auto;
+    background:#222;
+    color:white;
+    padding:15px;
+    border-radius:10px;
+}
+
+
+</style>
+
+
+<div id="home" class="screen home">
+
+<div class="topbar">
+    <span onclick="showHome()" style="cursor:pointer;">JSS Water</span>
+    <div style="display:flex; gap:15px; align-items:center;">
+        <div onclick="showCart()">Cart 🛒</div>
+        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+             onclick="showProfile()"
+             style="width:32px; height:32px; border-radius:50%; cursor:pointer;">
+    </div>
+</div>
+
+
+<div id="bigBtn" class="big-btn" onclick="handleBigBtn()">
+    <div id="btnContent">
+        <div id="btnText">Need Water</div>
+    </div>
+</div>
+
+
+<div class="bottombar">
+    <h4>Function Order Items</h4>
+    <div class="slide-box">
+        <div class="slide-track" id="slideTrack"></div>
+    </div>
+</div>
+<!-- CART SCREEN -->
+<div id="cartScreen" style="display:none; padding:15px;">
+    <h3>Today Order</h3>
+    <p>Date: <span id="cartDate"></span></p>
+    <p>Load Cans: <span id="loadCans">0</span></p>
+    <p>Empty Cans: <span id="emptyCans">0</span></p>
+    <p>Per Can Amount: ₹<span id="perCan">40</span></p>
+    <hr>
+    <h3>Total Amount: ₹<span id="totalAmount">0</span></h3>
+</div>
+
+<!-- PROFILE SCREEN -->
+<div id="profileScreen" style="display:none; padding:15px; text-align:center;">
+    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+         style="width:90px; border-radius:50%; margin-bottom:10px;">
+    <h3 id="profileName">Nova</h3>
+    <p>ID: <span id="profileId">JSS1024</span></p>
+    <p>Location: <span id="profileLocation">Kattur</span></p>
+    <p>Per Can Price: ₹<span id="profilePrice">40</span></p>
+</div>
+
+<!-- Popup -->
+<div id="popupOverlay" onclick="overlayClick(event)">
+    <div class="popupBox">
+
+        <div id="popupMessage">Select quantity</div>
+
+        <div id="qtyControls">
+            <button id="idbtn-l" onclick="changeQty(-1)">-</button>
+            <input id="qty" type="number" value="1" readonly>
+            <button id="idbtn-r" onclick="changeQty(1)">+</button>
+        </div>
+
+        <br>
+
+        <button id="confirmBtn" onclick="confirmOrder()">Confirm</button>
+        <button id="cancelbtn" onclick="closePopup()">Cancel</button>
+
+    </div>
+</div>
+</div>
+
+<script>
+let cart=[];
+let orderPlaced=false;
+
+function handleBigBtn(){
+    if(orderPlaced){
+        // cancel popup
+        document.getElementById("popupMessage").innerText =
+            "Order already placed. Cancel order?";
+        document.getElementById("qtyControls").style.display="none";
+        document.getElementById("confirmBtn").innerText="Cancel Order";
+        document.getElementById("cancelbtn").innerText="No";
+        document.getElementById("confirmBtn").onclick=cancelOrder;
+    }else{
+        // normal order popup
+        document.getElementById("popupMessage").innerText="Select quantity";
+        document.getElementById("qtyControls").style.display="block";
+        document.getElementById("confirmBtn").innerText="Confirm";
+        document.getElementById("cancelbtn").innerText="Cancel";
+        document.getElementById("confirmBtn").onclick=confirmOrder;
+    }
+
+    openPopup();
+}
+
+function openPopup(){
+    document.getElementById("popupOverlay").classList.add("active");
+}
+function closePopup(){
+    document.getElementById("popupOverlay").classList.remove("active");
+}
+function overlayClick(e){
+    if(e.target.id==="popupOverlay"){
+        closePopup();
+    }
+}
+
+function changeQty(v){
+    const q=document.getElementById("qty");
+    let val=parseInt(q.value)||1;
+    val+=v;
+    if(val<1)val=1;
+    q.value=val;
+}
+
+/* ===== CONFIRM ORDER ===== */
+function confirmOrder(){
+    const qty=parseInt(document.getElementById("qty").value);
+    cart=[{item:"20L Can",qty}];
+    orderPlaced=true;
+
+    const bigBtn = document.getElementById("bigBtn");
+    const content = document.getElementById("btnContent");
+    bigBtn.style.backgroundColor="#0070ff";
+    bigBtn.style.color="white";
+    bigBtn.classList.add("loader");
+
+    content.innerHTML = `
+        <div class="truck-box">
+            <img src="https://cdnl.iconscout.com/lottie/premium/thumb/delivery-man-drive-delivery-truck-animation-gif-download-7480788.gif">
+            <div>Order Placed</div>
+        </div>
+    `;
+
+    closePopup();
+}
+
+/* ===== CANCEL ORDER ===== */
+function cancelOrder(){
+    cart=[];
+    orderPlaced=false;
+    const bigBtn = document.getElementById("bigBtn");
+    const content = document.getElementById("btnContent");
+    bigBtn.style.backgroundColor="#00d8ff ";
+    bigBtn.style.color="rgb(111, 99, 99)";
+    bigBtn.classList.remove("loader");
+
+    content.innerHTML = `
+        <div id="btnText">Need Water</div>
+    `;
+
+    closePopup();
+}
+
+function showHome(){
+    document.getElementById("bigBtn").style.display="flex";
+    document.querySelector(".bottombar").style.display="block";
+    document.getElementById("cartScreen").style.display="none";
+    document.getElementById("profileScreen").style.display="none";
+}
+
+function showCart(){
+    document.getElementById("bigBtn").style.display="none";
+    document.querySelector(".bottombar").style.display="none";
+    document.getElementById("profileScreen").style.display="none";
+    document.getElementById("cartScreen").style.display="block";
+
+    // fill data
+    const today = new Date().toLocaleDateString();
+    document.getElementById("cartDate").innerText = today;
+
+    let load = cart.length ? cart[0].qty : 0;
+    let empty = 0;
+    let perCan = 40;
+
+    document.getElementById("loadCans").innerText = load;
+    document.getElementById("emptyCans").innerText = empty;
+    document.getElementById("perCan").innerText = perCan;
+    document.getElementById("totalAmount").innerText = load * perCan;
+}
+
+function showProfile(){
+    document.getElementById("bigBtn").style.display="none";
+    document.querySelector(".bottombar").style.display="none";
+    document.getElementById("cartScreen").style.display="none";
+    document.getElementById("profileScreen").style.display="block";
+}
+
+document.addEventListener("keydown",function(e){
+    if(e.key==="Escape") closePopup();
+});
+
+/* ===== Slider ===== */
+const imageList = [
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/1_300ml_c.jpg",
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/2_300ml.jpg",
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/3_500ml.jpg",
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/4_1l.jpg",
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/5_3001l.jpg",
+    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/6_all.jpg"
+];
+
+const track = document.getElementById("slideTrack");
+
+imageList.forEach(src=>{
+    const img=document.createElement("img");
+    img.src=src;
+    track.appendChild(img);
+});
+
+const firstClone=document.createElement("img");
+firstClone.src=imageList[0];
+track.appendChild(firstClone);
+
+let index=0;
+
+setInterval(()=>{
+    index++;
+    track.style.transform=`translateX(-${index*100}%)`;
+
+    if(index===imageList.length){
+        setTimeout(()=>{
+            track.style.transition="none";
+            track.style.transform="translateX(0)";
+            index=0;
+            setTimeout(()=>{
+                track.style.transition="transform 0.6s ease";
+            },50);
+        },600);
+    }
+},2500);
+</script>
+
+
+
+</body>
+</html>
