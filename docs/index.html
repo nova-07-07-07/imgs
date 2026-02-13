@@ -373,14 +373,33 @@ button{
     border-radius:10px;
 }
 
-
+.cartBox{
+    padding:20px;
+}
+.dayBox{
+    background:#1a2a3a;
+    margin-bottom:15px;
+    padding:12px;
+    border-radius:8px;
+}
+.dayTitle{
+    font-weight:bold;
+    margin-bottom:8px;
+    color:#00aaff;
+}
+.item{
+    display:flex;
+    justify-content:space-between;
+    padding:4px 0;
+    border-bottom:1px solid #333;
+}
 </style>
 
 
 <div id="home" class="screen home">
 
 <div class="topbar">
-    <span onclick="showHome()" style="cursor:pointer;">JSS Water</span>
+    <span onclick="showHome()" style="cursor:pointer;">JSS Water</span> 
     <div style="display:flex; gap:15px; align-items:center;">
         <div onclick="showCart()">Cart 🛒</div>
         <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
@@ -405,23 +424,18 @@ button{
 </div>
 <!-- CART SCREEN -->
 <div id="cartScreen" style="display:none; padding:15px;">
-    <h3>Today Order</h3>
-    <p>Date: <span id="cartDate"></span></p>
-    <p>Load Cans: <span id="loadCans">0</span></p>
-    <p>Empty Cans: <span id="emptyCans">0</span></p>
-    <p>Per Can Amount: ₹<span id="perCan">40</span></p>
-    <hr>
-    <h3>Total Amount: ₹<span id="totalAmount">0</span></h3>
+<div id="cartBox" class="cartBox"></div>
 </div>
 
 <!-- PROFILE SCREEN -->
 <div id="profileScreen" style="display:none; padding:15px; text-align:center;">
-    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+    <div id="profileContainer"></div>
+    <!-- <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
          style="width:90px; border-radius:50%; margin-bottom:10px;">
     <h3 id="profileName">Nova</h3>
     <p>ID: <span id="profileId">JSS1024</span></p>
     <p>Location: <span id="profileLocation">Kattur</span></p>
-    <p>Per Can Price: ₹<span id="profilePrice">40</span></p>
+    <p>Per Can Price: ₹<span id="profilePrice">40</span></p> -->
 </div>
 
 <!-- Popup -->
@@ -446,6 +460,14 @@ button{
 </div>
 
 <script>
+const user = {
+    profile_url : "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+    name: "Nova",
+    id: "JSS1024",
+    location: "Kattur",
+    price: 30
+};
+
 let cart=[];
 let orderPlaced=false;
 
@@ -468,6 +490,19 @@ function handleBigBtn(){
     }
 
     openPopup();
+}
+function renderProfile(userData) {
+
+    const container = document.getElementById("profileContainer");
+
+    container.innerHTML = `
+        <img src="${userData.profile_url}" alt="Profile Picture"
+             style="width:90px; border-radius:50%; margin-bottom:10px;">
+        <h3>${userData.name}</h3>
+        <p>ID: <span>${userData.id}</span></p>
+        <p>Location: <span>${userData.location}</span></p>
+        <p>Per Can Price: ₹<span>${userData.price}</span></p>
+    `;
 }
 
 function openPopup(){
@@ -542,18 +577,74 @@ function showCart(){
     document.getElementById("profileScreen").style.display="none";
     document.getElementById("cartScreen").style.display="block";
 
-    // fill data
-    const today = new Date().toLocaleDateString();
-    document.getElementById("cartDate").innerText = today;
+    const data = [
+{
+    date: "2021-08-10",
+    orders: [
+        { load:3, empty:3, amount:90 },
+        { load:5, empty:5, amount:150 }
+    ],
+    function_orders: [
+        { size:"300ml", qty:3, amount:150 },
+        { size:"500ml", qty:0, amount:0 },
+        { size:"1L", qty:2, amount:200 },
+        { size:"2L", qty:0, amount:0 }
+    ]
+},
+{
+    date: "2021-08-11",
+    orders: [
+        { load:3, empty:3, amount:90 },
+        { load:5, empty:5, amount:150 }
+    ]
+},
+{
+    date: "2021-08-12",
+    orders: [
+        { load:3, empty:3, amount:90 },
+        { load:5, empty:5, amount:150 }
+    ]
+}
+];
 
-    let load = cart.length ? cart[0].qty : 0;
-    let empty = 0;
-    let perCan = 40;
+/* SORT latest date on top */
+data.sort((a,b)=> new Date(b.date) - new Date(a.date));
 
-    document.getElementById("loadCans").innerText = load;
-    document.getElementById("emptyCans").innerText = empty;
-    document.getElementById("perCan").innerText = perCan;
-    document.getElementById("totalAmount").innerText = load * perCan;
+const cartBox = document.getElementById("cartBox");
+cartBox.innerHTML = ""; 
+data.forEach(day=>{
+    let html = `<div class="dayBox">
+        <div class="dayTitle">${day.date}</div>`;
+
+    /* Regular orders */
+    if(day.orders){
+        day.orders.forEach(o=>{
+            if(o.load!==0 || o.empty!==0){
+                html += `
+                <div class="item">
+                    <span>Load: ${o.load} | Empty: ${o.empty}</span>
+                    <span>₹${o.amount}</span>
+                </div>`;
+            }
+        });
+    }
+
+    /* Function orders */
+    if(day.function_orders){
+        day.function_orders.forEach(f=>{
+            if(f.qty>0){
+                html += `
+                <div class="item">
+                    <span>${f.size} x ${f.qty}</span>
+                    <span>₹${f.amount}</span>
+                </div>`;
+            }
+        });
+    }
+
+    html += `</div>`;
+    cartBox.innerHTML += html;
+});
 }
 
 function showProfile(){
@@ -561,7 +652,10 @@ function showProfile(){
     document.querySelector(".bottombar").style.display="none";
     document.getElementById("cartScreen").style.display="none";
     document.getElementById("profileScreen").style.display="block";
+
+    renderProfile(user);
 }
+
 
 document.addEventListener("keydown",function(e){
     if(e.key==="Escape") closePopup();
@@ -606,6 +700,11 @@ setInterval(()=>{
         },600);
     }
 },2500);
+
+document.addEventListener("DOMContentLoaded", function(){
+    renderProfile(user);
+});
+
 </script>
 
 
