@@ -155,6 +155,39 @@ function login(){
     margin-top:10px;
     border-radius:10px;
 }
+.popupOverlay2{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.popupBox2{
+    background:#222;
+    padding:20px;
+    border-radius:10px;
+    width:300px;
+    max-height:80vh;
+    overflow:auto;
+    color:white;
+}
+
+.function-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    background:#111;
+    padding:8px;
+    border-radius:6px;
+}
+
+.function-item img{
+    width:40px;
+}
+
 </style>
 
 <div id="signup" class="screen signup">
@@ -231,310 +264,570 @@ function setCoord(c){
 }
 </script>
 
-<!-- ================= HOME SCREEN ================= -->
-<style>
-.topbar{
-    background:#0b5fa5;
-    padding:12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    color:white;
-}
-.big-btn{
-    width:200px;
-    height:200px;
-    margin:40px auto;
-    background:#00d8ff ;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    border: solid 10px #1c1b1b;
-    align-items:center;
-    font-size:22px;
-    cursor:pointer;
-    color:rgb(111, 99, 99);
-    position:relative;
-}
-.bottombar{
-    width:100%;
-    padding:8px;
-}
-
-/* ===== Square Slideshow ===== */
-.slide-box{
-    width:100%;
-    max-width:300px;
-    aspect-ratio:1/1;
-    overflow:hidden;
-    margin:10px auto;
-    border-radius:12px;
-    position:relative;
-}
-.slide-track{
-    display:flex;
-    height:100%;
-    transition:transform 0.6s ease;
-}
-.slide-track img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    flex-shrink:0;
-}
-
-/* Loader */
-.loader::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: 16px solid transparent;
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    animation: spin 2s linear infinite;
-}
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
-#qty{ width:30px; text-align:center; font-size:16px;height: 30px; }
-#idbtn-l, #idbtn-r{ width:35px; height: 35px; font-size:16px;background-color: coral; }
-#idbtn-l{ border-radius: 50% 0 0 50%; }
-#idbtn-r{ border-radius: 0 50% 50% 0; }
-/* ===== Popup ===== */
-#popupOverlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    visibility:hidden;
-    opacity:0;
-    transition:opacity 0.3s ease;
-}
-#popupOverlay.active{
-    visibility:visible;
-    opacity:1;
-}
-.popupBox{
-    background:rgb(51, 51, 51);
-    color: #ffffff;
-    padding:25px;
-    border-radius:12px;
-    min-width:260px;
-    text-align:center;
-    transform:scale(0.8);
-    transition:transform 0.3s ease;
-}
-#popupOverlay.active .popupBox{
-    transform:scale(1);
-}
-button{
-    padding:6px 12px;
-    margin:4px;
-}
-.popupBox{
-    background:rgb(54, 54, 54);
-    padding:25px;
-    border-radius:12px;
-    min-width:260px;
-    text-align:center;
-    transform:scale(0.8);
-    transition:transform 0.3s ease;
-    color:#ffffff;              /* ensure text visible */
-}
-
-/* message style */
-#popupMessage{
-    font-size:18px;
-    font-weight:bold;
-    margin-bottom:15px;
-    color:#ffffff;
-}
-.truck-box{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-}
-
-.truck-box img{
-    width:90px;
-    height:auto;
-}
-#cartScreen, #profileScreen{
-    max-width:400px;
-    margin:20px auto;
-    background:#222;
-    color:white;
-    padding:15px;
-    border-radius:10px;
-}
-
-.cartBox{
-    padding:20px;
-}
-.dayBox{
-    background:#1a2a3a;
-    margin-bottom:15px;
-    padding:12px;
-    border-radius:8px;
-}
-.dayTitle{
-    font-weight:bold;
-    margin-bottom:8px;
-    color:#00aaff;
-}
-.item{
-    display:flex;
-    justify-content:space-between;
-    padding:4px 0;
-    border-bottom:1px solid #333;
-}
-</style>
-
-
-<div id="home" class="screen home">
-
-<div class="topbar">
-    <span onclick="showHome()" style="cursor:pointer;">JSS Water</span> 
-    <div style="display:flex; gap:15px; align-items:center;">
-        <div onclick="showCart()">Cart 🛒</div>
-        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
-             onclick="showProfile()"
-             style="width:32px; height:32px; border-radius:50%; cursor:pointer;">
-    </div>
-</div>
-
-
-<div id="bigBtn" class="big-btn" onclick="handleBigBtn()">
-    <div id="btnContent">
-        <div id="btnText">Need Water</div>
-    </div>
-</div>
-
-
-<div class="bottombar">
-    <h4>Function Order Items</h4>
-    <div class="slide-box">
-        <div class="slide-track" id="slideTrack"></div>
-    </div>
-</div>
-<!-- CART SCREEN -->
-<div id="cartScreen" style="display:none; padding:15px;">
-<div id="cartBox" class="cartBox"></div>
-</div>
-
-<!-- PROFILE SCREEN -->
-<div id="profileScreen" style="display:none; padding:15px; text-align:center;">
-    <div id="profileContainer"></div>
-    <!-- <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
-         style="width:90px; border-radius:50%; margin-bottom:10px;">
-    <h3 id="profileName">Nova</h3>
-    <p>ID: <span id="profileId">JSS1024</span></p>
-    <p>Location: <span id="profileLocation">Kattur</span></p>
-    <p>Per Can Price: ₹<span id="profilePrice">40</span></p> -->
-</div>
-
-<!-- Popup -->
-<div id="popupOverlay" onclick="overlayClick(event)">
-    <div class="popupBox">
-
-        <div id="popupMessage">Select quantity</div>
-
-        <div id="qtyControls">
-            <button id="idbtn-l" onclick="changeQty(-1)">-</button>
-            <input id="qty" type="number" value="1" readonly>
-            <button id="idbtn-r" onclick="changeQty(1)">+</button>
-        </div>
-
-        <br>
-
-        <button id="confirmBtn" onclick="confirmOrder()">Confirm</button>
-        <button id="cancelbtn" onclick="closePopup()">Cancel</button>
-
-    </div>
-</div>
-</div>
-
-<script>
-const user = {
-    profile_url : "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-    name: "Nova",
-    id: "JSS1024",
-    location: "Kattur",
-    price: 30
-};
-
-let cart=[];
-let orderPlaced=false;
-
-function handleBigBtn(){
-    if(orderPlaced){
-        // cancel popup
-        document.getElementById("popupMessage").innerText =
-            "Order already placed. Cancel order?";
-        document.getElementById("qtyControls").style.display="none";
-        document.getElementById("confirmBtn").innerText="Cancel Order";
-        document.getElementById("cancelbtn").innerText="No";
-        document.getElementById("confirmBtn").onclick=cancelOrder;
-    }else{
-        // normal order popup
-        document.getElementById("popupMessage").innerText="Select quantity";
-        document.getElementById("qtyControls").style.display="block";
-        document.getElementById("confirmBtn").innerText="Confirm";
-        document.getElementById("cancelbtn").innerText="Cancel";
-        document.getElementById("confirmBtn").onclick=confirmOrder;
+    <!-- ================= HOME SCREEN ================= -->
+    <style>
+    .topbar{
+        background:#0b5fa5;
+        padding:12px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        color:white;
+    }
+    .big-btn{
+        width:200px;
+        height:200px;
+        margin:40px auto;
+        background:#00d8ff ;
+        border-radius:50%;
+        display:flex;
+        justify-content:center;
+        border: solid 10px #1c1b1b;
+        align-items:center;
+        font-size:22px;
+        /* cursor:pointer; */
+        color:rgb(111, 99, 99);
+        position:relative;
+    }
+    .bottombar{
+        width:100%;
+        padding:8px;
     }
 
-    openPopup();
-}
-function renderProfile(userData) {
+    /* ===== Square Slideshow ===== */
+    .slide-box{
+        width:100%;
+        max-width:300px;
+        aspect-ratio:1/1;
+        overflow:hidden;
+        margin:10px auto;
+        border-radius:12px;
+        position:relative;
+    }
+    .slide-track{
+        display:flex;
+        height:100%;
+        transition:transform 0.6s ease;
+    }
+    .slide-track img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        flex-shrink:0;
+    }
 
-    const container = document.getElementById("profileContainer");
+    /* Loader */
+    .loader::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 16px solid transparent;
+        border-top: 4px solid #fff;
+        border-radius: 50%;
+        animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+    }
+    #qty{ width:30px; text-align:center; font-size:16px;height: 30px; }
+    #idbtn-l, #idbtn-r{ width:35px; height: 35px; font-size:16px;background-color: coral; }
+    #idbtn-l{ border-radius: 50% 0 0 50%; }
+    #idbtn-r{ border-radius: 0 50% 50% 0; }
+    /* ===== Popup ===== */
+    #popupOverlay{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.5);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        visibility:hidden;
+        opacity:0;
+        transition:opacity 0.3s ease;
+    }
+    #popupOverlay.active{
+        visibility:visible;
+        opacity:1;
+    }
+    .popupBox{
+        background:rgb(51, 51, 51);
+        color: #ffffff;
+        padding:25px;
+        border-radius:12px;
+        min-width:260px;
+        text-align:center;
+        transform:scale(0.8);
+        transition:transform 0.3s ease;
+    }
+    #popupOverlay.active .popupBox{
+        transform:scale(1);
+    }
+    button{
+        padding:6px 12px;
+        margin:4px;
+    }
+    .popupBox{
+        background:rgb(54, 54, 54);
+        padding:25px;
+        border-radius:12px;
+        min-width:260px;
+        text-align:center;
+        transform:scale(0.8);
+        transition:transform 0.3s ease;
+        color:#ffffff;              /* ensure text visible */
+    }
 
-    container.innerHTML = `
-        <img src="${userData.profile_url}" alt="Profile Picture"
-             style="width:90px; border-radius:50%; margin-bottom:10px;">
-        <h3>${userData.name}</h3>
-        <p>ID: <span>${userData.id}</span></p>
-        <p>Location: <span>${userData.location}</span></p>
-        <p>Per Can Price: ₹<span>${userData.price}</span></p>
-    `;
-}
+    /* message style */
+    #popupMessage{
+        font-size:18px;
+        font-weight:bold;
+        margin-bottom:15px;
+        color:#ffffff;
+    }
+    .truck-box{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+    }
 
-function openPopup(){
-    document.getElementById("popupOverlay").classList.add("active");
-}
-function closePopup(){
-    document.getElementById("popupOverlay").classList.remove("active");
-}
-function overlayClick(e){
-    if(e.target.id==="popupOverlay"){
+    .truck-box img{
+        width:90px;
+        height:auto;
+    }
+    #cartScreen, #profileScreen{
+        width:max-content;
+        min-width: 300px;
+        margin:20px auto;
+        height: max-content;
+        background:#222;
+        color:white;
+        padding:15px;
+        border-radius:10px;
+    }
+
+    .cartBox{
+        padding:20px;
+        width: 300px;
+    }
+    .dayBox{
+        background:#1a2a3a;
+        margin-bottom:15px;
+        padding:12px;
+        border-radius:8px;
+    }
+    .dayTitle{
+        font-weight:bold;
+        margin-bottom:8px;
+        color:#00aaff;
+    }
+    .item{
+        display:flex;
+        justify-content:space-between;
+        padding:4px 0;
+        border-bottom:1px solid #333;
+    }
+    .entry {
+    background: #111;
+    color: #fff;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    }
+    .bott-tit{
+        display: flex;
+        justify-content: space-between;
+        padding-right: 15px;
+        align-items: center;
+    }
+
+    .pobtn{
+        background-color: #113b5d;
+        color: #78e6f9;
+        height: 40px;
+    }
+    .func-item{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        background:#111;
+        padding:10px;
+        margin-bottom:10px;
+        border-radius:8px;
+    }
+
+    .func-left{
+        display:flex;
+        gap:10px;
+        align-items:center;
+    }
+
+    .func-left img{
+        width:45px;
+        height:auto;
+    }
+
+    .qty-box{
+        display:flex;
+        align-items:center;
+        gap:5px;
+    }
+
+    .qty-btn{
+        width:30px;
+        height:30px;
+        font-size:18px;
+        background:#0b5fa5;
+        color:white;
+        border:none;
+    }
+
+    </style>
+
+
+    <div id="home" class="screen home">
+
+    <div class="topbar">
+        <span onclick="showHome()" >JSS Water</span> 
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div onclick="showCart()">Cart 🛒</div>
+            <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                onclick="showProfile()"
+                style="width:32px; height:32px; border-radius:50%;">
+        </div>
+    </div>
+
+    <div id="bigBtn" class="big-btn" onclick="handleBigBtn()">
+        <div id="btnContent">
+            <div id="btnText">Need Water</div>
+        </div>
+    </div>
+
+    <div class="bottombar">
+        
+        <div class="bott-tit"><h4>Function Order Items </h4>
+            <button class="pobtn" onclick="openFunctionOrder()">Place Order⌯⌲</button>
+        </div>
+        <div class="slide-box">
+            <div class="slide-track" id="slideTrack"></div>
+        </div>
+    </div>
+
+    <div id="cartScreen" style="display:none; padding:15px;">
+        <div id="cartBox" class="cartBox"></div>
+    </div>
+
+    <div id="profileScreen" style="display:none; padding:15px; text-align:center;">
+        <div id="profileContainer"></div>
+    </div>
+
+    <!-- Popup -->
+    <div id="popupOverlay" onclick="overlayClick(event)">
+        <div class="popupBox">
+
+            <div id="popupMessage">Select quantity</div>
+
+            <div id="qtyControls">
+                <button id="idbtn-l" onclick="changeQty(-1)">-</button>
+                <input id="qty" type="number" value="1" readonly>
+                <button id="idbtn-r" onclick="changeQty(1)">+</button>
+            </div>
+
+            <br>
+
+            <button id="confirmBtn" onclick="confirmOrder()">Confirm</button>
+            <button id="cancelbtn" onclick="closePopup()">Cancel</button>
+
+        </div>
+    </div>
+<!-- FUNCTION ORDER SCREEN -->
+<div id="functionScreen" style="display:none; padding:15px;">
+    <h3>Function Order</h3>
+    <div id="functionList"></div>
+
+    <button class="pobtn" style="width:100%; margin-top:15px;"
+            onclick="showBillScreen()">
+        Continue
+    </button>
+</div>
+
+<!-- BILL SCREEN -->
+<div id="billScreen" style="display:none; padding:15px;">
+    <!-- back btn to go function order screen -->
+     <button class="pobtn" style="width:100%; margin-top:15px;"
+            onclick="showFunctionOrder()">
+        Back
+    </button>
+    <h3>Bill</h3>
+    <div id="billList"></div>
+
+    <button class="pobtn" style="width:100%; margin-top:15px;"
+            onclick="confirmFunctionOrder()">
+        Confirm Order
+    </button>
+</div>
+
+
+    </div>
+
+    <script>
+    const user = {
+        profile_url : "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+        name: "Nova",
+        id: "JSS1024",
+        location: "Kattur",
+        price: 30
+    };
+
+    let cart=[];
+    let orderPlaced=true;
+
+    function handleBigBtn(){
+        if(orderPlaced){
+            // cancel popup
+            document.getElementById("popupMessage").innerText =
+                "Order already placed. Cancel order?";
+            document.getElementById("qtyControls").style.display="none";
+            document.getElementById("confirmBtn").innerText="Cancel Order";
+            document.getElementById("cancelbtn").innerText="No";
+            document.getElementById("confirmBtn").onclick=cancelOrder;
+        }else{
+            // normal order popup
+            document.getElementById("popupMessage").innerText="Select quantity";
+            document.getElementById("qtyControls").style.display="block";
+            document.getElementById("confirmBtn").innerText="Confirm";
+            document.getElementById("cancelbtn").innerText="Cancel";
+            document.getElementById("confirmBtn").onclick=confirmOrder;
+        }
+
+        openPopup();
+    }
+    function renderProfile(userData) {
+
+        const container = document.getElementById("profileContainer");
+
+        container.innerHTML = `
+            <img src="${userData.profile_url}" alt="Profile Picture"
+                style="width:90px; border-radius:50%; margin-bottom:10px;">
+            <h3>${userData.name}</h3>
+            <p>ID: <span>${userData.id}</span></p>
+            <p>Location: <span>${userData.location}</span></p>
+            <p>Per Can Price: ₹<span>${userData.price}</span></p>
+        `;
+    }
+    
+    function openPopup(){
+        document.getElementById("popupOverlay").classList.add("active");
+    }
+    function closePopup(){
+        document.getElementById("popupOverlay").classList.remove("active");
+    }
+    function overlayClick(e){
+        if(e.target.id==="popupOverlay"){
+            closePopup();
+        }
+    }
+
+    function changeQty(v){
+        const q=document.getElementById("qty");
+        let val=parseInt(q.value)||1;
+        val+=v;
+        if(val<1)val=1;
+        q.value=val;
+    }
+    
+    /* ===== CONFIRM ORDER ===== */
+    function confirmOrder(){
+        const qty=parseInt(document.getElementById("qty").value);
+        cart=[{item:"20L Can",qty}];
+        orderPlaced=true;
+
+        const bigBtn = document.getElementById("bigBtn");
+        const content = document.getElementById("btnContent");
+        bigBtn.style.backgroundColor="#0070ff";
+        bigBtn.style.color="white";
+        bigBtn.classList.add("loader");
+
+        content.innerHTML = `
+            <div class="truck-box">
+                <img src="https://cdnl.iconscout.com/lottie/premium/thumb/delivery-man-drive-delivery-truck-animation-gif-download-7480788.gif">
+                <div>Order Placed</div>
+            </div>
+        `;
+
         closePopup();
     }
-}
 
-function changeQty(v){
-    const q=document.getElementById("qty");
-    let val=parseInt(q.value)||1;
-    val+=v;
-    if(val<1)val=1;
-    q.value=val;
-}
+    /* ===== CANCEL ORDER ===== */
+    function cancelOrder(){
+        cart=[];
+        orderPlaced=false;
+        const bigBtn = document.getElementById("bigBtn");
+        const content = document.getElementById("btnContent");
+        bigBtn.style.backgroundColor="#00d8ff ";
+        bigBtn.style.color="rgb(111, 99, 99)";
+        bigBtn.classList.remove("loader");
 
-/* ===== CONFIRM ORDER ===== */
-function confirmOrder(){
-    const qty=parseInt(document.getElementById("qty").value);
-    cart=[{item:"20L Can",qty}];
-    orderPlaced=true;
+        content.innerHTML = `
+            <div id="btnText">Need Water</div>
+        `;
 
+        closePopup();
+    }
+
+    function showHome(){
+
+        document.getElementById("bigBtn").style.display="flex";
+        document.querySelector(".bottombar").style.display="block";
+        document.getElementById("cartScreen").style.display="none";
+        document.getElementById("profileScreen").style.display="none";
+        document.getElementById("functionScreen").style.display="none";
+        document.getElementById("billScreen").style.display="none";
+    }
+
+
+    function showCart(){
+        document.getElementById("bigBtn").style.display="none";
+        document.querySelector(".bottombar").style.display="none";
+        document.getElementById("profileScreen").style.display="none";
+        document.getElementById("cartScreen").style.display="block";
+
+        const data = [
+    {
+        date: "2021-08-10",
+        orders: [
+            { load:3, empty:3, amount:90 ,status:"Delivered" },
+            { load:5, empty:5, amount:150 ,status:"Delivered" }
+        ],
+        function_orders: [
+            { size:"300ml", qty:3, amount:150, status:"Delivered" },
+            { size:"500ml", qty:0, amount:0, status:"Delivered" },
+            { size:"1L", qty:2, amount:200, status:"Delivered" },
+            { size:"2L", qty:0, amount:0, status:"Delivered" }
+        ]
+    },
+    {
+        date: "2021-08-11",
+        orders: [
+            { load:3, empty:3, amount:90, status:"Delivered" },
+            { load:5, empty:5, amount:150, status:"Delivered" }
+        ]
+    },
+    {
+        date: "2021-08-12",
+        orders: [
+            { load:3, empty:3, amount:90, status:"Delivered" },
+            { load:5, empty:5, amount:150, status:"Delivered" }
+        ]
+    }
+    ];
+    console.log("show cart")
+
+    /* SORT latest date on top */
+    data.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+    const cartBox = document.getElementById("cartBox");
+    cartBox.innerHTML = ""; 
+    data.forEach(day => {
+
+        /* Regular orders */
+        if(day.orders){
+            day.orders.forEach(o=>{
+                if(o.load !== 0 || o.empty !== 0){
+                    cartBox.innerHTML += `
+                    <div class="entry">
+                        <p><strong>Date:</strong> ${day.date}</p>
+                        <p><strong>Load:</strong> ${o.load}</p>
+                        <p><strong>Empty:</strong> ${o.empty}</p>
+                        <p><strong>Amount:</strong> ₹${o.amount}</p>
+                    </div>`;
+                }
+            });
+        }
+
+        /* Function orders */
+        if(day.function_orders){
+            let functionHtml = "";
+            day.function_orders.forEach(f=>{
+                if(f.qty > 0){
+                    functionHtml += `
+                    <p>${f.size} x ${f.qty} = ₹${f.amount}</p>`;
+                }
+            });
+
+            if(functionHtml !== ""){
+                cartBox.innerHTML += `
+                <div class="entry">
+                    <p><strong>Date:</strong> ${day.date}</p>
+                    ${functionHtml}
+                </div>`;
+            }
+        }
+
+    });
+
+    }
+    function showProfile(){
+        document.getElementById("bigBtn").style.display="none";
+        document.querySelector(".bottombar").style.display="none";
+        document.getElementById("cartScreen").style.display="none";
+        document.getElementById("profileScreen").style.display="block";
+
+        renderProfile(user);
+    }
+
+
+    document.addEventListener("keydown",function(e){
+        if(e.key==="Escape") closePopup();
+    });
+
+    /* ===== Slider ===== */
+    const imageList = [
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/1_300ml_c.jpg",
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/2_300ml.jpg",
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/3_500ml.jpg",
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/4_1l.jpg",
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/5_3001l.jpg",
+        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/6_all.jpg"
+    ];
+
+    const track = document.getElementById("slideTrack");
+
+    imageList.forEach(src=>{
+        const img=document.createElement("img");
+        img.src=src;
+        track.appendChild(img);
+    });
+
+    const firstClone=document.createElement("img");
+    firstClone.src=imageList[0];
+    track.appendChild(firstClone);
+
+    let index=0;
+
+    setInterval(()=>{
+        index++;
+        track.style.transform=`translateX(-${index*100}%)`;
+
+        if(index===imageList.length){
+            setTimeout(()=>{
+                track.style.transition="none";
+                track.style.transform="translateX(0)";
+                index=0;
+                setTimeout(()=>{
+                    track.style.transition="transform 0.6s ease";
+                },50);
+            },600);
+        }
+    },2500);
+function showOrderPlacedUI(){
     const bigBtn = document.getElementById("bigBtn");
     const content = document.getElementById("btnContent");
-    bigBtn.style.backgroundColor="#0070ff";
-    bigBtn.style.color="white";
+
+    bigBtn.style.backgroundColor = "#0070ff";
+    bigBtn.style.color = "white";
     bigBtn.classList.add("loader");
 
     content.innerHTML = `
@@ -543,171 +836,124 @@ function confirmOrder(){
             <div>Order Placed</div>
         </div>
     `;
-
-    closePopup();
 }
 
-/* ===== CANCEL ORDER ===== */
-function cancelOrder(){
-    cart=[];
-    orderPlaced=false;
-    const bigBtn = document.getElementById("bigBtn");
-    const content = document.getElementById("btnContent");
-    bigBtn.style.backgroundColor="#00d8ff ";
-    bigBtn.style.color="rgb(111, 99, 99)";
-    bigBtn.classList.remove("loader");
+    document.addEventListener("DOMContentLoaded", function(){
+    renderProfile(user);
 
-    content.innerHTML = `
-        <div id="btnText">Need Water</div>
-    `;
+    if(orderPlaced){
+        showOrderPlacedUI();
+    }
+});
 
-    closePopup();
-}
-
-function showHome(){
-    document.getElementById("bigBtn").style.display="flex";
-    document.querySelector(".bottombar").style.display="block";
-    document.getElementById("cartScreen").style.display="none";
-    document.getElementById("profileScreen").style.display="none";
-}
-
-function showCart(){
-    document.getElementById("bigBtn").style.display="none";
-    document.querySelector(".bottombar").style.display="none";
-    document.getElementById("profileScreen").style.display="none";
-    document.getElementById("cartScreen").style.display="block";
-
-    const data = [
-{
-    date: "2021-08-10",
-    orders: [
-        { load:3, empty:3, amount:90 },
-        { load:5, empty:5, amount:150 }
-    ],
-    function_orders: [
-        { size:"300ml", qty:3, amount:150 },
-        { size:"500ml", qty:0, amount:0 },
-        { size:"1L", qty:2, amount:200 },
-        { size:"2L", qty:0, amount:0 }
-    ]
-},
-{
-    date: "2021-08-11",
-    orders: [
-        { load:3, empty:3, amount:90 },
-        { load:5, empty:5, amount:150 }
-    ]
-},
-{
-    date: "2021-08-12",
-    orders: [
-        { load:3, empty:3, amount:90 },
-        { load:5, empty:5, amount:150 }
-    ]
-}
+    const functionProducts = [
+    {name:"300ml", price:10, img:imageList[0]},
+    {name:"500ml", price:15, img:imageList[2]},
+    {name:"1L", price:20, img:imageList[3]},
+    {name:"2L", price:30, img:imageList[3]},
+    {name:"20L", price:40, img:imageList[5]}
 ];
 
-/* SORT latest date on top */
-data.sort((a,b)=> new Date(b.date) - new Date(a.date));
+let selectedItems = [];
 
-const cartBox = document.getElementById("cartBox");
-cartBox.innerHTML = ""; 
-data.forEach(day=>{
-    let html = `<div class="dayBox">
-        <div class="dayTitle">${day.date}</div>`;
-
-    /* Regular orders */
-    if(day.orders){
-        day.orders.forEach(o=>{
-            if(o.load!==0 || o.empty!==0){
-                html += `
-                <div class="item">
-                    <span>Load: ${o.load} | Empty: ${o.empty}</span>
-                    <span>₹${o.amount}</span>
-                </div>`;
-            }
-        });
-    }
-
-    /* Function orders */
-    if(day.function_orders){
-        day.function_orders.forEach(f=>{
-            if(f.qty>0){
-                html += `
-                <div class="item">
-                    <span>${f.size} x ${f.qty}</span>
-                    <span>₹${f.amount}</span>
-                </div>`;
-            }
-        });
-    }
-
-    html += `</div>`;
-    cartBox.innerHTML += html;
-});
-}
-
-function showProfile(){
+function openFunctionOrder(){
     document.getElementById("bigBtn").style.display="none";
     document.querySelector(".bottombar").style.display="none";
     document.getElementById("cartScreen").style.display="none";
-    document.getElementById("profileScreen").style.display="block";
+    document.getElementById("profileScreen").style.display="none";
 
-    renderProfile(user);
+    document.getElementById("functionScreen").style.display="block";
+    renderFunctionScreen();
+}
+function showFunctionOrder(){
+    // hide bill screen
+    document.getElementById("billScreen").style.display = "none";
+
+    // show function order screen
+    document.getElementById("functionScreen").style.display = "block";
+
+    // hide other screens
+    document.getElementById("cartScreen").style.display = "none";
+    document.getElementById("profileScreen").style.display = "none";
+
+    // hide home elements
+    document.getElementById("bigBtn").style.display = "none";
+    document.querySelector(".bottombar").style.display = "none";
 }
 
+function renderFunctionScreen(){
+    const list = document.getElementById("functionList");
+    list.innerHTML = "";
 
-document.addEventListener("keydown",function(e){
-    if(e.key==="Escape") closePopup();
-});
+    functionProducts.forEach((item,i)=>{
+        list.innerHTML += `
+        <div class="func-item">
+            <div class="func-left">
+                <img src="${item.img}">
+                <div>${item.name}</div>
+            </div>
+            <div class="qty-box">
+                <button class="qty-btn" onclick="changeFuncQty(${i},-1)">-</button>
+                <input id="funcQty${i}" value="0"  />
+                <button class="qty-btn" onclick="changeFuncQty(${i},1)">+</button>
+            </div>
+        </div>`;
+    });
+}
 
-/* ===== Slider ===== */
-const imageList = [
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/1_300ml_c.jpg",
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/2_300ml.jpg",
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/3_500ml.jpg",
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/4_1l.jpg",
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/5_3001l.jpg",
-    "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/6_all.jpg"
-];
+function changeFuncQty(i,val){
+    let el = document.getElementById("funcQty"+i);
+    let qty = parseInt(el.value);
+    qty += val;
+    if(qty<0) qty=0;
+    el.value = qty;
+}
 
-const track = document.getElementById("slideTrack");
+function showBillScreen(){
+    const bill = document.getElementById("billList");
+    bill.innerHTML = "";
 
-imageList.forEach(src=>{
-    const img=document.createElement("img");
-    img.src=src;
-    track.appendChild(img);
-});
+    let total = 0;
+    selectedItems = [];
 
-const firstClone=document.createElement("img");
-firstClone.src=imageList[0];
-track.appendChild(firstClone);
+    functionProducts.forEach((item,i)=>{
+        let qty = parseInt(document.getElementById("funcQty"+i).value);
+        if(qty>0){
+            let amount = qty * item.price;
+            total += amount;
+            selectedItems.push({...item, qty, amount});
 
-let index=0;
+            bill.innerHTML += `
+            <div class="func-item">
+                <span>${item.name} x ${qty}</span>
+                <span>₹${amount}</span>
+            </div>`;
+        }
+    });
 
-setInterval(()=>{
-    index++;
-    track.style.transform=`translateX(-${index*100}%)`;
+    bill.innerHTML += `<hr><div style="display:flex; justify-content:space-between; align-items:center;"><div></div><h4>Total: ₹${total}</h4></div>`;
 
-    if(index===imageList.length){
-        setTimeout(()=>{
-            track.style.transition="none";
-            track.style.transform="translateX(0)";
-            index=0;
-            setTimeout(()=>{
-                track.style.transition="transform 0.6s ease";
-            },50);
-        },600);
+    document.getElementById("functionScreen").style.display="none";
+    document.getElementById("billScreen").style.display="block";
+}
+function confirmFunctionOrder(){
+    if(selectedItems.length === 0){
+        alert("Select at least one item");
+        return;
     }
-},2500);
 
-document.addEventListener("DOMContentLoaded", function(){
-    renderProfile(user);
-});
+    // hide bill screen
+    document.getElementById("billScreen").style.display = "none";
 
-</script>
+    // show home
+    showHome();
+
+    confirmOrder();
+}
+
+    </script>
 
 
 
-</body>
-</html>
+    </body>
+    </html>
