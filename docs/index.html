@@ -1,59 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JSS Water App</title>
-
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSS Water Services</title>
+    <!-- Leaflet styles & script for map functionality -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
-<body style="margin:0;font-family:Arial;background:#0c2132;color:white;">
-
-<!-- ================= GLOBAL SCRIPT ================= -->
-<script>
-function showScreen(id){
-    // hide welcome screen
-    document.querySelector(".cd-intro").style.display = "none";
-
-    // hide all app screens
-    document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
-
-    // show selected screen
-    document.getElementById(id).style.display="flex";
-    if (id == "home") {
-        document.getElementById(id).style.display="block";
-    }
-}
-
-// function showScreen(id){
-//     document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
-//     // document.getElementById(id).style.display="flex";
-//     // if (id == "home") {
-//     // document.getElementById(id).style.display="block";
-//     // }
-//     document.getElementById("home").style.display="block";
-// }
-</script>
-
-
-<!-- ================= WELCOME SCREEN ================= -->
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,700,400" rel="stylesheet">
-
+<body>
+    <script src="./script.js"></script>
+<!-- intro section -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Open Sans",sans-serif;}
 
-body{
+/* body{
     background:#2e416a;
-}
+} */
 
 /* Intro container */
 .cd-intro{
     height:100vh;
     width:100%;
-    display:flex;
+    display:none;
     align-items:center;
     justify-content:center;
     background:#2e416a;
@@ -119,12 +89,7 @@ body{
 .screen{
     display:none;
 }
-
 </style>
-
-</head>
-
-<body>
 
 <section class="cd-intro">
     <div class="mask-2">
@@ -137,48 +102,142 @@ body{
     </div>
 </section>
 
-<script>
-// JS for welcome
-setTimeout(()=>showScreen("login"),4000);
-</script>
+<!-- popup section  -->
 
-
-<!-- ================= LOGIN SCREEN ================= -->
 <style>
-/* CSS for login */
-.login{
+.popupwindow{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
     display:none;
-    height:100vh;
     justify-content:center;
     align-items:center;
+    z-index:999;
+    backdrop-filter: blur(3px);
 }
-.login .box{
-    width:80%;
-    margin:auto;
-    background:#1a2a3a;
-    padding:25px;
-    border-radius:10px;
-    text-align:center;
-    justify-content: center;
-}
-.login input{
-    width:90%;
-    padding:10px;
-    margin:6px 0;
-    border:none;
-    border-radius:6px;
-}
-.login button{
-    width:100%;
-    padding:10px;
-    background:#00aaff;
+
+.popupcontent{
+    background:linear-gradient(145deg,#2a2a2a,#1c1c1c);
+    padding:20px;
+    padding-top:5px;
+    border-radius:16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    align-items:center;
+    width:320px;
+    max-height:90vh;
+    overflow:auto;
     color:white;
+    box-shadow:0 15px 35px rgba(0,0,0,0.5);
+    animation:popupScale 0.2s ease;
 }
-.link{
-    color:deepskyblue;
+
+/* Smooth open animation */
+@keyframes popupScale{
+    from{
+        transform:scale(0.9);
+        opacity:0;
+    }
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+#popupBtn{
+    padding:4px 10px;
+    background:#ff4d4d;
+    color:white;
+    border:none;
+    border-radius:50%;
+    font-size:1rem;
+    width:30px;
+    height:30px;
     cursor:pointer;
-    margin-top:10px;
+    transition:0.2s;
 }
+
+#popupBtn:hover{
+    background:#ff1a1a;
+    transform:scale(1.1);
+}
+
+#popupTop{
+    font-size:1.2rem;
+    font-weight:600;
+    text-align:center;
+}
+
+#popupBottom{
+    width:100%;
+    font-size:0.95rem;
+    line-height:1.5;
+}
+
+#popupBottom p{
+    background:#333;
+    padding:10px;
+    border-radius:10px;
+    margin:8px 0;
+}
+
+hr{
+    border:none;
+    border-top:1px solid #444;
+    margin:10px 0;
+}
+</style>
+
+
+<div class="popupwindow" id="popupwindow">
+    <div class="popupcontent">
+        <div style="display:flex;justify-content:end;align-items:center;width:100%;">
+            <button id="popupBtn" onclick="closePopup()">X</button>
+        </div>
+        <div id="popupTop" style="margin-bottom: 5px;"></div>
+        <hr width="100%">
+        <div id="popupBottom" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<!-- login section  -->
+
+<style>
+/* CSS for login */
+    .login{
+        display:none;
+        height:100vh;
+        justify-content:center;
+        align-items:center;
+    }
+    .login .box{
+        width:80%;
+        margin:auto;
+        background:#1a2a3a;
+        padding:25px;
+        border-radius:10px;
+        text-align:center;
+        justify-content: center;
+    }
+    .login input{
+        width:90%;
+        padding:10px;
+        margin:6px 0;
+        border:none;
+        border-radius:6px;
+    }
+    .login button{
+        width:100%;
+        padding:10px;
+        background:#00aaff;
+        color:white;
+    }
+    .link{
+        color:deepskyblue;
+        cursor:pointer;
+        margin-top:10px;
+    }
 </style>
 
 <div id="login" class="screen login">
@@ -189,29 +248,14 @@ setTimeout(()=>showScreen("login"),4000);
         <input id="loginPass" type="password" placeholder="Password">
         <button onclick="login()">Login</button>
 
-        <div class="link" onclick="showScreen('signup')">
+        <div class="link" id="newUserOnlogin">
             New user? Sign up
         </div>
+        <p style="margin-top: 10px;color: #c72525;">any issues call : <a href="tel:9384965236">9384965236</a> </p>
     </div>
 </div>
 
-<script>
-// JS for login
-function login(){
-    const id=document.getElementById("loginId").value.trim();
-    const pass=document.getElementById("loginPass").value.trim();
-    const user=JSON.parse(localStorage.getItem("user"));
-
-    if(!user||id!==user.name||pass!==user.pass){
-        alert("Invalid login");
-        return;
-    }
-    showScreen("home");
-}
-</script>
-
-
-<!-- ================= SIGNUP SCREEN ================= -->
+<!-- signup section  -->
 <style>
 /* CSS for signup */
 .signup{
@@ -246,8 +290,8 @@ function login(){
 #mapBox{
     height:250px;
     display:none;
-    margin-top:10px;
     border-radius:10px;
+    z-index: 1;
 }
 .popupOverlay2{
     position:fixed;
@@ -282,87 +326,58 @@ function login(){
     width:40px;
 }
 
+/* map controls at bottom of map box */
+#mapBox { position: relative; }
+.map-controls {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(255, 255, 255, 0);
+    border-radius: 5px;
+    font-size: 14px;
+}
+.map-controls input { margin-right: 4px; }
+
 </style>
 
 <div id="signup" class="screen signup">
     <!-- HTML signup -->
     <div class="box">
         <h2>Sign Up</h2>
-        <input id="name" style="width: 100%;" placeholder="Name">
+        <img id="profile_img_on_signup" src="https://imgs.search.brave.com/dWW0ceXApQM51Ca7UhAtD012yPBSCUVPdivBDucIk9A/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2U0LzE2/LzQyL2U0MTY0MmM0/NzhlODEzYWZjMjli/ZTE1ZWE1YzM4NDQw/LmpwZw" alt="Internet Error" style="width:120px;height:120px;margin-bottom:10px;border-radius: 50%; margin-top: 10px;">
+        <input id="profile_upload_input" type="file" accept="image/*" style="display:none">
+        <input id="newwwid" style="width:100%;" placeholder="Id" readonly>
+        <input id="name_signup" style="width: 100%;" placeholder="Name">
+        <input type="number" id="mobile_signup" style="width:100%;" placeholder="Mobile Number">
         <div style="display: flex;justify-content: space-around;">
-            <input id="password" style="width: 85%;" type="password" placeholder="Password">
-        <div id="btnText-log" style="width: 30px;margin-top: 3px;background-color: #79828600;font-size: 2rem;cursor: pointer;" onclick="togglePass()">🔒</div>
+            <input type="number" id="otp_signup" style="width:100%;" placeholder="OTP">
+            <button id="sendOtpBtn" style="width: 60px; margin-top: 5px;background-color: #1a2a3a00;color: white;border: solid 1px white; border-radius: 10%;" onclick="sendOtp()">Send OTP</button>
         </div>
         <div style="display: flex;justify-content: space-around;">
-        <input id="address" style="width: 85%;" placeholder="Address (click icon to get)" readonly>
-        <div style="width: 30px;height: 40px;" onclick="openMap()"><img style="width: 30px;height: 40px;padding: 0;margin: 0;padding-top: 5px;" src="https://img.icons8.com/?size=100&id=6OOnASO9fxuG&format=png&color=000000" alt=""></div>
+            <input id="password_signup" style="width: 85%;" type="password" placeholder="Password">
+            <div id="btnText-log" style="width: 30px;margin-top: 3px;background-color: #79828600;font-size: 2rem;cursor: pointer;" onclick="togglePass()">🔒</div>
         </div>
-        <br>
-        <div id="mapBox"></div>
+        <div style="display: flex;justify-content: space-around;">
+            <input id="address_signup" style="width: 85%;" placeholder="Address (click icon to get)" readonly>
+            <div style="width: 30px;height: 40px;" onclick="openMap()"><img style="width: 30px;height: 40px;padding: 0;margin: 0;padding-top: 5px;" src="https://img.icons8.com/?size=100&id=6OOnASO9fxuG&format=png&color=000000" alt=""></div>
+        </div><br>
+        <div id="mapBox" style="position:relative;"></div>
+        <!-- map type switching controls -->
+        <div id="mapControls" class="map-controls">
+            <label><input type="radio" name="mapType" value="road" checked> Road</label>
+            <label><input type="radio" name="mapType" value="satellite"> Satellite</label>
+        </div>
 
         <button onclick="signup()">Create Account</button>
-        <div class="link" onclick="showScreen('login')">
+        <div class="link" id="olduseronSignup">
             Back to Login
         </div>
     </div>
 </div>
 
-<script>
-// JS for signup
-function signup(){
-    const name=document.getElementById("name").value.trim();
-    const pass=document.getElementById("password").value.trim();
-    const addr=document.getElementById("address").value.trim();
 
-    if(!name||!pass||!addr){
-        alert("Fill all fields");
-        return;
-    }
+<!-- home section  -->
 
-    localStorage.setItem("user",JSON.stringify({name,pass,addr}));
-    alert("Signup Success");
-    showScreen("login");
-}
-
-function togglePass(){
-    const p=document.getElementById("password");
-    document.getElementById("btnText-log").innerText=p.type==="password"?"🔓":"🔒";
-    p.type=p.type==="password"?"text":"password";
-}
-
-/* MAP */
-let map,marker;
-const SALEM=[11.6076,78.0037];
-
-function openMap(){
-    document.getElementById("mapBox").style.display="block";
-    if(map)return;
-
-    map=L.map("mapBox").setView(SALEM,13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-    marker=L.marker(SALEM,{draggable:true}).addTo(map);
-    setCoord(SALEM);
-
-    marker.on("dragend",()=>{
-        const c=marker.getLatLng();
-        setCoord([c.lat,c.lng]);
-    });
-
-    map.on("click",e=>{
-        marker.setLatLng(e.latlng);
-        setCoord([e.latlng.lat,e.latlng.lng]);
-    });
-}
-
-function setCoord(c){
-    document.getElementById("address").value=
-    c[0].toFixed(4)+", "+c[1].toFixed(4);
-}
-</script>
-
-    <!-- ================= HOME SCREEN ================= -->
-    <style>
+<style>
     .topbar{
         background:#0b5fa5;
         padding:12px;
@@ -401,6 +416,24 @@ function setCoord(c){
         border-radius:12px;
         position:relative;
     }
+    .bott-tit{
+        display: flex;
+        justify-content: space-between;
+        padding-right: 15px;
+        align-items: center;
+    }
+    .truck-box{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+    }
+    .truck-box img{
+        width:90px;
+        height:auto;
+    }
+
     .slide-track{
         display:flex;
         height:100%;
@@ -423,6 +456,11 @@ function setCoord(c){
         border-radius: 50%;
         animation: spin 2s linear infinite;
     }
+    .pobtn{
+        background-color: #113b5d;
+        color: #78e6f9;
+        height: 40px;
+    }
     @keyframes spin {
         from { transform: rotate(0deg); }
         to   { transform: rotate(360deg); }
@@ -431,207 +469,73 @@ function setCoord(c){
     #idbtn-l, #idbtn-r{ width:35px; height: 35px; font-size:16px;background-color: coral; }
     #idbtn-l{ border-radius: 50% 0 0 50%; }
     #idbtn-r{ border-radius: 0 50% 50% 0; }
-    /* ===== Popup ===== */
-    #popupOverlay{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.5);
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        visibility:hidden;
-        opacity:0;
-        transition:opacity 0.3s ease;
-    }
-    #popupOverlay.active{
-        visibility:visible;
-        opacity:1;
-    }
-    .popupBox{
-        background:rgb(51, 51, 51);
-        color: #ffffff;
-        padding:25px;
-        border-radius:12px;
-        min-width:260px;
-        text-align:center;
-        transform:scale(0.8);
-        transition:transform 0.3s ease;
-    }
-    #popupOverlay.active .popupBox{
-        transform:scale(1);
-    }
-    button{
-        padding:6px 12px;
-        margin:4px;
-    }
-    .popupBox{
-        background:rgb(54, 54, 54);
-        padding:25px;
-        border-radius:12px;
-        min-width:260px;
-        text-align:center;
-        transform:scale(0.8);
-        transition:transform 0.3s ease;
-        color:#ffffff;              /* ensure text visible */
-    }
-
-    /* message style */
-    #popupMessage{
-        font-size:18px;
-        font-weight:bold;
-        margin-bottom:15px;
-        color:#ffffff;
-    }
-    .truck-box{
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        gap:8px;
-    }
-
-    .truck-box img{
-        width:90px;
-        height:auto;
-    }
-    #cartScreen, #profileScreen{
-       
-        min-width: 300px;
-        margin:20px auto;
-        height: max-content;
-        color:white;
-        padding:15px;
-        border-radius:10px;
-    }
-
-    .cartBox{
-
-        padding:20px;
-        width: 90%;
-    }
-    .dayBox{
-        background:#1a2a3a;
-        margin-bottom:15px;
-        padding:12px;
-        border-radius:8px;
-    }
-    .dayTitle{
-        font-weight:bold;
-        margin-bottom:8px;
-        color:#00aaff;
-    }
-    .item{
-        display:flex;
-        justify-content:space-between;
-        /* padding:4px 0; */
-        border-bottom:1px solid #333;
-    }
-    .entry{
+    .new_pop_up{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
     display:flex;
-    justify-content:space-between;
+    justify-content:center;
     align-items:center;
-    padding:10px 12px;
-    margin:6px 0;
+    z-index:9999;
+    animation:fadeIn 0.2s ease;
+}
+
+.pop_up_content{
+    background:#1a2a3a;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+    min-width:260px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+    animation:scaleIn 0.2s ease;
+}
+
+.pop_up_content h2{
+    margin:0;
+    font-size:18px;
+}
+
+.pop_up_content button{
+    background:#0b5fa5;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.pop_up_content input{
+    border:none;
     background:#111;
-    color:#fff;
-    border-radius:8px;
-    font-size:15px;
+    color:white;
+    padding:5px;
+    border-radius:4px;
 }
 
-.entry .col{
-    flex:1;
-    text-align:center;
+/* animations */
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
 }
 
-.entry .col:first-child{
-    text-align:left;
+@keyframes scaleIn{
+    from{transform:scale(0.8);}
+    to{transform:scale(1);}
 }
 
-.entry .col:last-child{
-    text-align:right;
-    font-weight:bold;
-}
-
-    .bott-tit{
-        display: flex;
-        justify-content: space-between;
-        padding-right: 15px;
-        align-items: center;
-    }
-
-    .pobtn{
-        background-color: #113b5d;
-        color: #78e6f9;
-        height: 40px;
-    }
-    .func-item{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        background:#111;
-        padding:10px;
-        margin-bottom:10px;
-        border-radius:8px;
-    }
-
-    .func-left{
-        display:flex;
-        gap:10px;
-        align-items:center;
-    }
-
-    .func-left img{
-        width:45px;
-        height:auto;
-    }
-
-    .qty-box{
-        display:flex;
-        align-items:center;
-        gap:5px;
-    }
-
-    .qty-btn{
-        width:30px;
-        height:30px;
-        font-size:18px;
-        background:#0b5fa5;
-        color:white;
-        border:none;
-    }
-
-    .qty-btn-l{
-        border-radius: 50% 0 0 50%;
-    }
-
-    .qty-btn-r{
-        border-radius: 0 50% 50% 0;
-    }
-
-    .qqttyy-inp{
-        width: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #00aaff00;
-        color: #ffffff;
-        border: none;
-    }
-    </style>
+</style>
 
 
-    <div id="home" class="screen home">
-
+<div id="home" class="screen home">
     <div class="topbar">
         <span onclick="showHome()" >JSS Water</span> 
         <div style="display:flex; gap:15px; align-items:center;">
             <div onclick="showCart()">Cart 🛒</div>
-            <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+            <img id="homescreenprofile" src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
                 onclick="showProfile()"
                 style="width:32px; height:32px; border-radius:50%;">
         </div>
     </div>
-
     <div id="bigBtn" class="big-btn" onclick="handleBigBtn()">
         <div id="btnContent">
             <div id="btnText">Need Water</div>
@@ -640,7 +544,8 @@ function setCoord(c){
 
     <div class="bottombar">
         
-        <div class="bott-tit"><h4>Function Order Items </h4>
+        <div class="bott-tit">
+            <h4>Function Order Items </h4>
             <button class="pobtn" onclick="openFunctionOrder()">Place Order⌯⌲</button>
         </div>
         <div class="slide-box">
@@ -656,467 +561,13 @@ function setCoord(c){
         <div id="profileContainer"></div>
     </div>
 
-    <!-- Popup -->
-    <div id="popupOverlay" onclick="overlayClick(event)">
-        <div class="popupBox">
-
-            <div id="popupMessage">Select quantity(optional)</div>
-
-            <div id="qtyControls">
-                <button id="idbtn-l" onclick="changeQty(-1)">-</button>
-                <input id="qty" type="number" value="1" readonly>
-                <button id="idbtn-r" onclick="changeQty(1)">+</button>
-            </div>
-
-            <br>
-
-            <button id="confirmBtn" onclick="confirmOrder()">Confirm</button>
-            <button id="cancelbtn" onclick="closePopup()">Cancel</button>
-
-        </div>
-    </div>
-<!-- FUNCTION ORDER SCREEN -->
-<div id="functionScreen" style="display:none; padding:15px;">
-    <h3>Function Order</h3>
-    <div id="functionList"></div>
-
-    <button class="pobtn" style="width:100%; margin-top:15px;"
-            onclick="showBillScreen()">
-        Continue ≫
-    </button>
-</div>
-
-<!-- BILL SCREEN -->
-<div id="billScreen" style="display:none; padding:15px;">
-    <!-- back btn to go function order screen -->
-     <button class="pobtn" style="width:100%; margin-top:15px; width: 90px;border-radius: 50% 50% 50% 50%;background-color: #0a7889;color: white;font-size: 18px;height: 40px;margin-bottom: 10px;"
-            onclick="showFunctionOrder()">
-        ↩ Back
-    </button>
-    <h3>Bill</h3>
-    <div id="billList"></div>
-
-    <button class="pobtn" style="width:100%; margin-top:15px;"
-            onclick="confirmFunctionOrder()">
-        Confirm Order
-    </button>
-</div>
-
+    <div id="functionOdDiv" style="display: none;">
 
     </div>
-
-    <script>
-    const user = {
-        profile_url : "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-        name: "Nova",
-        id: "JSS1024",
-        location: "Kattur",
-        price: 30
-    };
-
-    let cart=[];
-    let orderPlaced=false;
-
-    function handleBigBtn(){
-        if(orderPlaced){
-            // cancel popup
-            document.getElementById("popupMessage").innerText =
-                "Order already placed. Cancel order?";
-            document.getElementById("qtyControls").style.display="none";
-            document.getElementById("confirmBtn").innerText="Cancel Order";
-            document.getElementById("cancelbtn").innerText="No";
-            document.getElementById("confirmBtn").onclick=cancelOrder;
-        }else{
-            // normal order popup
-            document.getElementById("popupMessage").innerText="Select quantity";
-            document.getElementById("qtyControls").style.display="block";
-            document.getElementById("confirmBtn").innerText="Confirm";
-            document.getElementById("cancelbtn").innerText="Cancel";
-            document.getElementById("confirmBtn").onclick=confirmOrder;
-        }
-
-        openPopup();
-    }
-    function renderProfile(userData) {
-
-        const container = document.getElementById("profileContainer");
-
-        container.innerHTML = `
-            <img src="${userData.profile_url}" alt="Profile Picture"
-                style="width:90px; border-radius:50%; margin-bottom:10px;">
-            <h3>${userData.name}</h3>
-            <p>ID: <span>${userData.id}</span></p>
-            <p>Location: <span>${userData.location}</span></p>
-            <p>Per Can Price: ₹<span>${userData.price}</span></p>
-        `;
-    }
-    
-    function openPopup(){
-        document.getElementById("popupOverlay").classList.add("active");
-    }
-    function closePopup(){
-        document.getElementById("popupOverlay").classList.remove("active");
-    }
-    function overlayClick(e){
-        if(e.target.id==="popupOverlay"){
-            closePopup();
-        }
-    }
-
-    function changeQty(v){
-        const q=document.getElementById("qty");
-        let val=parseInt(q.value)||1;
-        val+=v;
-        if(val<1)val=1;
-        q.value=val;
-    }
-    
-    /* ===== CONFIRM ORDER ===== */
-    function confirmOrder(){
-        const qty=parseInt(document.getElementById("qty").value);
-        cart=[{item:"20L Can",qty}];
-        orderPlaced=true;
-
-        const bigBtn = document.getElementById("bigBtn");
-        const content = document.getElementById("btnContent");
-        bigBtn.style.backgroundColor="#0070ff";
-        bigBtn.style.color="white";
-        bigBtn.classList.add("loader");
-
-        content.innerHTML = `
-            <div class="truck-box">
-                <img src="https://cdnl.iconscout.com/lottie/premium/thumb/delivery-man-drive-delivery-truck-animation-gif-download-7480788.gif">
-                <div>Order Placed</div>
-            </div>
-        `;
-
-        closePopup();
-    }
-
-    /* ===== CANCEL ORDER ===== */
-    function cancelOrder(){
-        cart=[];
-        orderPlaced=false;
-        const bigBtn = document.getElementById("bigBtn");
-        const content = document.getElementById("btnContent");
-        bigBtn.style.backgroundColor="#00d8ff ";
-        bigBtn.style.color="rgb(111, 99, 99)";
-        bigBtn.classList.remove("loader");
-
-        content.innerHTML = `
-            <div id="btnText">Need Water</div>
-        `;
-
-        closePopup();
-    }
-
-    function showHome(){
-
-        document.getElementById("bigBtn").style.display="flex";
-        document.querySelector(".bottombar").style.display="block";
-        document.getElementById("cartScreen").style.display="none";
-        document.getElementById("profileScreen").style.display="none";
-        document.getElementById("functionScreen").style.display="none";
-        document.getElementById("billScreen").style.display="none";
-        // change body bg #0c2132
-        document.body.style.backgroundColor="#0c2132";
-    }
-
-
-    function showCart(){
-        document.getElementById("bigBtn").style.display="none";
-        document.querySelector(".bottombar").style.display="none";
-        document.getElementById("profileScreen").style.display="none";
-        document.getElementById("profileScreen").style.display="none";
-        document.getElementById("functionScreen").style.display="none";
-        document.getElementById("billScreen").style.display="none";
-        document.getElementById("cartScreen").style.display="block";
-        
-        document.body.style.backgroundColor="#222";
-        const data = [
-    {
-        date: "2021-08-10",
-        orders: [
-            { load:3, empty:3, amount:90 ,status:"Delivered" },
-            { load:5, empty:5, amount:150 ,status:"Delivered" }
-        ],
-        function_orders: [
-            { size:"300ml", qty:3, amount:150, status:"Delivered" },
-            { size:"500ml", qty:5, amount:57, status:"Delivered" },
-            { size:"1L", qty:2, amount:200, status:"Delivered" },
-            { size:"2L", qty:46, amount:4646, status:"Delivered" }
-        ]
-    },
-    {
-        date: "2021-08-11",
-        orders: [
-            { load:3, empty:3, amount:90, status:"Delivered" },
-            { load:5, empty:5, amount:150, status:"Delivered" }
-        ]
-    },
-    {
-        date: "2021-08-12",
-        orders: [
-            { load:3, empty:3, amount:90, status:"Delivered" },
-            { load:5, empty:5, amount:150, status:"Delivered" }
-        ]
-    }
-    ];
-    console.log("show cart")
-
-    /* SORT latest date on top */
-    data.sort((a,b)=> new Date(b.date) - new Date(a.date));
-
-    const cartBox = document.getElementById("cartBox");
-    cartBox.innerHTML = ""; 
-    data.forEach(day => {
-
-    if(day.orders){
-    day.orders.forEach(o=>{
-        if(o.load !== 0 || o.empty !== 0){
-            cartBox.innerHTML += `
-            <div class="entry">
-                <div class="col">${day.date}</div>
-                <div class="col">${o.load}-${o.empty}</div>
-                <div class="col">₹${o.amount}</div>
-            </div>`;
-        }
-    });
-}
-
-/* Function orders */
-if(day.function_orders){
-
-    let items = [];
-    let totalAmount = 0;
-
-    day.function_orders.forEach(f => {
-        if(f.qty > 0){
-            items.push(`${f.size} x${f.qty}`);
-            totalAmount += f.amount;
-        }
-    });
-
-    if(items.length > 0){
-        cartBox.innerHTML += `
-        <div class="entry">
-            <div class="col">${day.date}</div>
-            <div class="col">${items.join(" <br> ")}</div>
-            <div class="col">₹${totalAmount}</div>
-        </div>`;
-    }
-}
-
-});
-
-    }
-    function showProfile(){
-        document.getElementById("bigBtn").style.display="none";
-        document.querySelector(".bottombar").style.display="none";
-        document.getElementById("cartScreen").style.display="none";
-        document.getElementById("profileScreen").style.display="none";
-        document.getElementById("functionScreen").style.display="none";
-        document.getElementById("billScreen").style.display="none";
-        document.getElementById("profileScreen").style.display="block";
-
-        document.body.style.backgroundColor="#222";
-        renderProfile(user);
-    }
-
-
-    document.addEventListener("keydown",function(e){
-        if(e.key==="Escape") closePopup();
-    });
-
-    /* ===== Slider ===== */
-    const imageList = [
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/1_300ml_c.jpg",
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/2_300ml.jpg",
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/3_500ml.jpg",
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/4_1l.jpg",
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/5_3001l.jpg",
-        "https://raw.githubusercontent.com/nova-07-07-07/imgs/refs/heads/main/6_all.jpg"
-    ];
-
-    const track = document.getElementById("slideTrack");
-
-    imageList.forEach(src=>{
-        const img=document.createElement("img");
-        img.src=src;
-        track.appendChild(img);
-    });
-
-    const firstClone=document.createElement("img");
-    firstClone.src=imageList[0];
-    track.appendChild(firstClone);
-
-    let index=0;
-
-    setInterval(()=>{
-        index++;
-        track.style.transform=`translateX(-${index*100}%)`;
-
-        if(index===imageList.length){
-            setTimeout(()=>{
-                track.style.transition="none";
-                track.style.transform="translateX(0)";
-                index=0;
-                setTimeout(()=>{
-                    track.style.transition="transform 0.6s ease";
-                },50);
-            },600);
-        }
-    },2500);
-function showOrderPlacedUI(){
-    const bigBtn = document.getElementById("bigBtn");
-    const content = document.getElementById("btnContent");
-
-    bigBtn.style.backgroundColor = "#0070ff";
-    bigBtn.style.color = "white";
-    bigBtn.classList.add("loader");
-
-    content.innerHTML = `
-        <div class="truck-box">
-            <img src="https://cdnl.iconscout.com/lottie/premium/thumb/delivery-man-drive-delivery-truck-animation-gif-download-7480788.gif">
-            <div>Order Placed</div>
-        </div>
-    `;
-}
-
-    document.addEventListener("DOMContentLoaded", function(){
-    renderProfile(user);
-
-    if(orderPlaced){
-        showOrderPlacedUI();
-    }
-});
-
-    const functionProducts = [
-    {name:"300ml", price:10, img:imageList[0]},
-    {name:"500ml", price:15, img:imageList[2]},
-    {name:"1L", price:20, img:imageList[3]},
-    {name:"2L", price:30, img:imageList[3]},
-    {name:"20L", price:40, img:imageList[5]}
-];
-
-let selectedItems = [];
-
-function openFunctionOrder(){
-    document.getElementById("bigBtn").style.display="none";
-    document.querySelector(".bottombar").style.display="none";
-    document.getElementById("cartScreen").style.display="none";
-    document.getElementById("profileScreen").style.display="none";
-
-    document.getElementById("functionScreen").style.display="block";
-    renderFunctionScreen();
-}
-function showFunctionOrder(){
-    // hide bill screen
-    document.getElementById("billScreen").style.display = "none";
-
-    // show function order screen
-    document.getElementById("functionScreen").style.display = "block";
-
-    // hide other screens
-    document.getElementById("cartScreen").style.display = "none";
-    document.getElementById("profileScreen").style.display = "none";
-
-    // hide home elements
-    document.getElementById("bigBtn").style.display = "none";
-    document.querySelector(".bottombar").style.display = "none";
-}
-
-function renderFunctionScreen(){
-    const list = document.getElementById("functionList");
-    list.innerHTML = "";
-
-    functionProducts.forEach((item,i)=>{
-        list.innerHTML += `
-        <div class="func-item">
-            <div class="func-left">
-                <img src="${item.img}">
-                <div>${item.name}</div>
-            </div>
-            <div class="qty-box">
-                <button class="qty-btn qty-btn-l" onclick="changeFuncQty(${i},-1)">-</button>
-                <input class="qqttyy-inp" id="funcQty${i}" value="0"  />
-                <button class="qty-btn qty-btn-r" onclick="changeFuncQty(${i},1)">+</button>
-            </div>
-        </div>`;
-    });
-}
-
-function changeFuncQty(i,val){
-    let el = document.getElementById("funcQty"+i);
-    let qty = parseInt(el.value);
-    qty += val;
-    if(qty<0) qty=0;
-    el.value = qty;
-}
-
-function showBillScreen(){
-    const bill = document.getElementById("billList");
-    bill.innerHTML = "";
-
-    let total = 0;
-    selectedItems = [];
-    let hasItem = false; // check flag
-
-    functionProducts.forEach((item,i)=>{
-        let qty = parseInt(document.getElementById("funcQty"+i).value);
-
-        if(qty > 0){
-            hasItem = true; // at least one item selected
-
-            let amount = qty * item.price;
-            total += amount;
-            selectedItems.push({...item, qty, amount});
-
-            bill.innerHTML += `
-            <div class="func-item">
-                <span>${item.name} x ${qty}</span>
-                <span>₹${amount}</span>
-            </div>`;
-        }
-    });
-
-    // if no item selected
-    if(!hasItem){
-        alert("Select at least one item");
-        return;
-    }
-
-    bill.innerHTML += `
-        <hr>
-        <div style="display:flex; justify-content:space-between;">
-            <h4>Total</h4>
-            <h4>₹${total}</h4>
-        </div>`;
-
-    // switch screens
-    document.getElementById("functionScreen").style.display="none";
-    document.getElementById("billScreen").style.display="block";
-}
-
-
-function confirmFunctionOrder(){
-    if(selectedItems.length === 0){
-        alert("Select at least one item");
-        return;
-    }
-
-    // hide bill screen
-    document.getElementById("billScreen").style.display = "none";
-
-    // show home
-    showHome();
-
-    confirmOrder();
-}
-
-    </script>
-
-
-
-    </body>
-    </html>
+    <div id="billScreen" style="display:none;">
+        <div id="billDetails"></div>
+    </div>
+</div>
+
+</body>
+</html>
