@@ -16,7 +16,7 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Open Sans",sans-serif;}
 
 /* body{
-    background:#2e416a;
+    background:#1f1734;
 } */
 
 /* Intro container */
@@ -26,7 +26,7 @@
     display:none;
     align-items:center;
     justify-content:center;
-    background:#2e416a;
+    background:#1f1734;
     overflow:hidden;
 }
 
@@ -204,44 +204,90 @@ hr{
 <!-- login section  -->
 
 <style>
-/* CSS for login */
-    .login{
-        display:none;
-        height:100vh;
-        justify-content:center;
-        align-items:center;
-    }
-    .login .box{
-        width:80%;
-        margin:auto;
-        background:#1a2a3a;
-        padding:25px;
-        border-radius:10px;
-        text-align:center;
-        justify-content: center;
-    }
-    .login input{
-        width:90%;
-        padding:10px;
-        margin:6px 0;
-        border:none;
-        border-radius:6px;
-    }
-    .login button{
-        width:100%;
-        padding:10px;
-        background:#00aaff;
-        color:white;
-    }
-    .link{
-        color:deepskyblue;
-        cursor:pointer;
-        margin-top:10px;
-    }
+/* Login screen background */
+.login{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    font-family: Arial, sans-serif;
+}
+
+/* Login box */
+.login .box{
+    width:320px;
+    background:#1a2a3a;
+    padding:30px 25px;
+    border-radius:12px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* Title */
+.login .box h2{
+    margin-bottom:20px;
+    color:#ffffff;
+}
+
+/* Inputs */
+.login input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+    outline:none;
+    font-size:14px;
+    background:#f1f1f1;
+    transition:0.2s;
+}
+
+.login input:focus{
+    background:#ffffff;
+    box-shadow:0 0 0 2px #00aaff;
+}
+
+/* Button */
+.login button{
+    width:100%;
+    padding:12px;
+    margin-top:12px;
+    background:linear-gradient(135deg, #00aaff, #0077ff);
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.login button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Signup link */
+.link{
+    color:deepskyblue;
+    cursor:pointer;
+    margin-top:14px;
+    font-size:14px;
+}
+
+.link:hover{
+    text-decoration:underline;
+}
+
+/* Help text */
+.login p{
+    margin-top:12px;
+    font-size:13px;
+}
 </style>
 
 <div id="login" class="screen login">
-    <!-- HTML login -->
     <div class="box">
         <h2>Login</h2>
         <input id="loginId" placeholder="Id">
@@ -251,48 +297,144 @@ hr{
         <div class="link" id="newUserOnlogin">
             New user? Sign up
         </div>
-        <p style="margin-top: 10px;color: #c72525;">any issues call : <a href="tel:9384965236">9384965236</a> </p>
+
+        <p style="color:#ff4d4d;">
+            any issues call :
+            <a href="tel:9384965236">9384965236</a>
+        </p>
     </div>
 </div>
 
 <!-- signup section  -->
 <style>
-/* CSS for signup */
+/* Signup screen background */
 .signup{
     display:none;
     height:100vh;
     justify-content:center;
     align-items:center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    font-family: Arial, sans-serif;
+    overflow-y:auto;
 }
+
+/* Signup box */
 .signup .box{
-    width:80%;
-    margin:auto;
+    width:340px;
     background:#1a2a3a;
-    padding:25px;
-    border-radius:10px;
-    align-items: center;
+    padding:30px 25px;
+    border-radius:12px;
     text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+    margin:20px 0;
 }
-.signup input{
-    width:90%;
-    padding:10px;
-    margin:6px 0;
-    border:none;
-    border-radius:6px;
-    font: 1em sans-serif;
-}
-.signup button{
-    width:100%;
-    padding:10px;
-    background:#00aaff;
+
+/* Title */
+.signup .box h2{
+    margin-bottom:15px;
     color:white;
 }
+
+/* Profile image */
+.signup .box img{
+    border-radius:50%;
+    border:3px solid #00aaff;
+    object-fit:cover;
+}
+
+/* Inputs */
+.signup input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+    outline:none;
+    font-size:14px;
+    background:#f1f1f1;
+    transition:0.2s;
+}
+
+.signup input:focus{
+    background:white;
+    box-shadow:0 0 0 2px #00aaff;
+}
+
+/* Main button */
+.signup button{
+    width:100%;
+    padding:12px;
+    margin-top:12px;
+    background:linear-gradient(135deg, #00aaff, #0077ff);
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.signup button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Small action buttons (OTP etc.) */
+#sendOtpBtn{
+    background:transparent;
+    border:1px solid white;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+#sendOtpBtn:hover{
+    background:#00aaff;
+    border-color:#00aaff;
+}
+
+/* Password toggle */
+#btnText-log{
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+/* Link text */
+.link{
+    color:deepskyblue;
+    cursor:pointer;
+    margin-top:14px;
+    font-size:14px;
+}
+
+.link:hover{
+    text-decoration:underline;
+}
+
+/* Map box */
 #mapBox{
     height:250px;
     display:none;
     border-radius:10px;
-    z-index: 1;
+    overflow:hidden;
+    margin-top:10px;
 }
+
+/* Map controls */
+.map-controls{
+    display:flex;
+    justify-content:space-around;
+    margin-top:10px;
+    color:white;
+    font-size:14px;
+}
+
+/* Popup overlay */
 .popupOverlay2{
     position:fixed;
     inset:0;
@@ -302,6 +444,7 @@ hr{
     align-items:center;
 }
 
+/* Popup box */
 .popupBox2{
     background:#222;
     padding:20px;
@@ -312,6 +455,7 @@ hr{
     color:white;
 }
 
+/* Function item */
 .function-item{
     display:flex;
     justify-content:space-between;
@@ -325,19 +469,8 @@ hr{
 .function-item img{
     width:40px;
 }
-
-/* map controls at bottom of map box */
-#mapBox { position: relative; }
-.map-controls {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0);
-    border-radius: 5px;
-    font-size: 14px;
-}
-.map-controls input { margin-right: 4px; }
-
 </style>
+
 
 <div id="signup" class="screen signup">
     <!-- HTML signup -->
@@ -379,7 +512,7 @@ hr{
 
 <style>
     .topbar{
-        background:#0b5fa5;
+        background:linear-gradient(135deg, #0a5269, #076886);
         padding:12px;
         display:flex;
         justify-content:space-between;

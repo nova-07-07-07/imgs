@@ -9,6 +9,9 @@ import random
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+compani_mobile = "<a href='tel:9384965345> +91 9384965345</a>"
+
+
 ORDERS_FILE = "orders.json"
 # "100" : 80,
 ITEM_PRICES = {
@@ -34,6 +37,9 @@ function_order_items = {
 # Storage for users
 users_db = {}
 USERS_FILE = "users.json"
+user_changes = {}
+USER_CHANGES_FILE = "userChanges.json"
+
 mobile_otp = {}
 # Folder to store uploaded profile images
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
@@ -81,6 +87,62 @@ def save_users():
         print("Users saved successfully.")
     except Exception as e:
         print("Error saving users:", e)
+
+from datetime import datetime, timedelta
+
+def cleanup_expired_user_changes():
+    global user_changes
+    now = datetime.now()
+
+    to_delete = []
+
+    for user_id, data in user_changes.items():
+        end_time_str = data.get("end_time")
+
+        if not end_time_str:
+            continue
+
+        try:
+            end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+            delete_time = end_time + timedelta(minutes=10)
+
+            if now >= delete_time:
+                to_delete.append(user_id)
+        except Exception:
+            continue
+
+    # delete expired users
+    for user_id in to_delete:
+        del user_changes[user_id]
+
+    if to_delete:
+        save_user_changes()
+
+def load_user_changes():
+    global user_changes
+    if not os.path.exists(USER_CHANGES_FILE):
+        with open(USER_CHANGES_FILE, 'w') as f:
+            json.dump({'userChanges': {}}, f, indent=2)
+
+    try:
+        with open(USER_CHANGES_FILE, 'r') as f:
+            data = json.load(f)
+            user_changes = data.get('userChanges', {})
+        print("User changes loaded successfully.")
+    except Exception as e:
+        print("Error loading user changes:", e)
+        user_changes = {}
+
+def save_user_changes():
+    try:
+        temp_file = USER_CHANGES_FILE + ".tmp"
+        with open(temp_file, 'w') as f:
+            json.dump({'userChanges': user_changes}, f, indent=2)
+        os.replace(temp_file, USER_CHANGES_FILE)
+        print("User changes saved successfully.")
+    except Exception as e:
+        print("Error saving user changes:", e)
+
 
 # -------------------------------------------------
 # Routes
@@ -359,7 +421,9 @@ def place_order():
             "status": "pending",
             "payment_status": "pending",
             "payment_method": "cash",
-            "paid_amount" : 0
+            "paid_amount" : 0,
+            "load":0,
+            "empty":0
         }
 
         # Load existing orders
@@ -403,12 +467,30 @@ def get_cart(user_id):
         # filter orders for this user
         user_cart = [
             order for order in orders
-            if order.get("user", {}).get("id") == user_id
+            if order.get("user", {}).get("id") == user_id 
         ]
+        # filter orders for this user 
+        return_cart =[]
+        filter_date = (datetime.now() - timedelta(days=10)).strftime("%Y%m%d")
+        for order in user_cart:
+            print(order.get("created_at")[:10].replace("-", ""))
+            if order.get("status") == "cancelled":
+                if order.get("created_at")[:10].replace("-", "") >= filter_date:
+                    return_cart.append(order)
+                else:
+                    # delete order permanently
+                    orders.remove(order)
+                    with open("orders.json", "w") as f:
+                        json.dump(orders, f, indent=4)
+            else:
+                return_cart.append(order)
+
+        return_cart = sorted(return_cart, key=lambda x: x.get("created_at"), reverse=True)
+        # print(return_cart)
 
         return jsonify({
             "success": True,
-            "data": user_cart
+            "data": return_cart
         })
 
     except Exception as e:
@@ -452,7 +534,9 @@ def water_bottle_order():
             "status": "pending",
             "payment_status": "pending",
             "payment_method": "cash",
-            "paid_amount" : 0
+            "paid_amount" : 0,
+            "load":0,
+            "empty":0
         }
         # Load existing orders
         if os.path.exists(ORDERS_FILE):
@@ -505,6 +589,7 @@ def cancel_order():
         # Search order
         for order in orders:
             if (
+                (order.get("status") == "pending" or order.get("status") == "active")and
                 order.get("order_id") == order_id and
                 order.get("user", {}).get("id") == user_id
             ):
@@ -530,6 +615,104 @@ def cancel_order():
         print("Order error:", e)
         return jsonify({'success': False, 'message': 'Server error'}), 500
 
+@app.route('/checkMyData/<user_id>', methods=['GET'])
+def check_my_data(user_id):
+    global user_changes
+    try:
+        # 🔹 auto cleanup first
+        cleanup_expired_user_changes()
+
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Missing user_id'}), 400
+
+        if user_id not in users_db:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+
+        userMess = user_changes.get(user_id)
+
+        if not userMess:
+            return jsonify({"success": True, "relode": False}), 200
+
+        currentTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        nextTime = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+
+        userMess["display_time"] = currentTime
+        userMess["end_time"] = nextTime
+
+        save_user_changes()
+
+        return jsonify({
+            "success": True,
+            "relode": True,
+            "data": userMess
+        })
+
+    except Exception as e:
+        print("Check my data error:", e)
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/hasActiveOrder/<user_id>', methods=['GET'])
+def has_active_order(user_id):
+    if not os.path.exists(ORDERS_FILE):
+        return jsonify({"active": False})
+
+    with open(ORDERS_FILE, "r") as f:
+        orders = json.load(f)
+
+    for order in reversed(orders):  # check latest first
+        if (
+            order.get("user", {}).get("id") == user_id and
+            (order.get("status") == "pending" or order.get("status") == "active")
+        ):
+            return jsonify({"active": True})
+
+    return jsonify({"active": False})
+
+@app.route('/deleteOrder', methods=['POST'])
+def delete_order():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Invalid data'}), 400
+
+        order_id = data.get("order_id")
+        user_id = data.get("user_id")
+
+        if not order_id or not user_id:
+            return jsonify({'success': False, 'message': 'Missing order_id or user_id'}), 400
+
+        if not os.path.exists(ORDERS_FILE):
+            return jsonify({'success': False, 'message': 'Orders file not found'}), 404
+
+        with open(ORDERS_FILE, "r") as f:
+            orders = json.load(f)
+
+        # filter orders (remove matching one)
+        new_orders = [
+            order for order in orders
+            if not (
+                order.get("order_id") == order_id and
+                order.get("user", {}).get("id") == user_id and
+                order.get("status") == "cancelled"
+            )
+
+        ]
+
+        if len(new_orders) == len(orders):
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+
+        with open(ORDERS_FILE, "w") as f:
+            json.dump(new_orders, f, indent=4)
+
+        return jsonify({
+            'success': True,
+            'message': 'Order deleted successfully'
+        }), 200
+
+    except Exception as e:
+        print("Delete error:", e)
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
 
 # -------------------------------------------------
 # Main
@@ -537,5 +720,6 @@ def cancel_order():
  
 if __name__ == '__main__':
     load_users()
+    load_user_changes()
     print("Starting server on http://")
     app.run(host='0.0.0.0', port=5000, debug=True)

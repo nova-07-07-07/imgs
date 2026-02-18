@@ -8,9 +8,9 @@ let userdata = null;
 let profilePreviewUrl = null;
 let user = {
     profile_url: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-    name: "Nova",
-    id: "JSS1024",
-    location: "Kattur",
+    name: "******",
+    id: "JSS0001",
+    location: "Elambilai",
     price: 30
 };
 let cart = [];
@@ -52,13 +52,14 @@ function power_on() {
                 // redirect to login page
                 document.getElementById("home").style.display = "none";
                 document.getElementById("login").style.display = "flex";
+                document.getElementById("login").style.color = "#fff";
                 }, 3200);
             }
         });
     } else {
         if (loginpage) {
             loginpage.style.display = "flex";
-            body.style.backgroundColor = "#0c2132";
+            body.style.backgroundColor = "#1f1734";
             body.style.color = "#fff";
         }
     }
@@ -67,7 +68,7 @@ function power_on() {
 
 function dis_intro() {
     if (intro) intro.style.display = "flex";
-    if (body) body.style.backgroundColor = "#2e416a";
+    if (body) body.style.backgroundColor = "#1f1734";
 
     setTimeout(() => {
         if (intro) intro.style.display = "none";
@@ -222,14 +223,34 @@ async function login() {
 
         if (response.success) {
             localStorage.setItem("jssuser", id);
+            jssuser = id;
             await fetchAndStoreUser(id);
 
             if (loginpage) loginpage.style.display = "none";
             if (signuppage) signuppage.style.display = "none";
-            if (body) body.style.backgroundColor = "#2e416a";
-
+            if (body) document.getElementsByTagName("body")[0].style.background = "linear-gradient(135deg, #2626bc, #050547)";
+            if (body) body.style.height = "100vh";
             dis_intro();
+            async function check_order_() {
+                try {
+                    const userId = localStorage.getItem("jssuser");
+                    if (!userId) {
+                        orderPlaced = false;
+                        return;
+                    }
 
+                    const res = await fetch(`http://localhost:5000/hasActiveOrder/${userId}`);
+                    const data = await res.json();
+
+                    orderPlaced = data.active === true;
+
+                } catch (e) {
+                    console.error("Order check failed:", e);
+                    orderPlaced = false;
+                }
+            }
+
+            await check_order_();   
             const home = document.getElementById('home');
             if (home) home.style.display = 'block';
 
@@ -243,6 +264,9 @@ async function login() {
                     <div style="color:#cfd8f0;margin-bottom:8px;">${userdata.address || ''}</div>
                     ${imgUrl ? `<img src="${imgUrl}" alt="profile" style="width:120px;height:120px;border-radius:50%;object-fit:cover;"/>` : ''}
                 `;
+            }
+            if (orderPlaced) {
+                show_order_animation();
             }
 
         } else {
@@ -347,7 +371,8 @@ async function showHome() {
     if (intro) intro.style.display = 'none';
     if (profileScreen) profileScreen.style.display = 'none';
     if (body) {
-        body.style.backgroundColor = '#2e416a';
+        document.body.style.background = "linear-gradient(135deg, #092455, #173e85)";
+        document.body.style.height = "100vh";
         body.style.color = '#fff';
     }
     if (home) home.style.display = 'block';
@@ -375,14 +400,16 @@ async function showHome() {
         const el = document.getElementById(id);
         if (el) el.style.display = "none";
     });
-    await check_order()
-    if (orderPlaced) {
+    await check_order();
+
+    if (orderPlaced === true) {
         show_order_animation();
-    }else{
+    } else {
         cancel_order_animation();
     }
 
-    if (document.body) document.body.style.backgroundColor = "#0c2132";
+
+    if (document.body) document.body.style.backgroundColor = "#1f1734";
 }
 
 function showProfile() {
@@ -391,7 +418,8 @@ function showProfile() {
     document.getElementById("cartScreen").style.display = "none";
     document.getElementById("profileScreen").style.display = "block";
     document.getElementById("functionOdDiv").style.display = "none";
-    document.body.style.backgroundColor = "#0c2132";
+    document.body.style.background = "linear-gradient(110deg, #200e30, #283d52)";
+    document.body.style.height = "100vh";
 
     if (!profileContainer || userdata.profileimg === '') {
         document.getElementById("homescreenprofile").src = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
@@ -423,7 +451,9 @@ function showProfile() {
         <p>Address</p>
 
         <div id="profileMap" style="width:100%;height:200px;border-radius:10px;margin:10px 0;"></div>
-
+        <button onclick="logout()" style="background:#00d8ff;border:none;color:black;border-radius:5px;padding:6px 12px;cursor:pointer;font-weight:600;">
+        logout
+        </button>
         
     `;
 
@@ -453,7 +483,7 @@ async function showCart() {
     document.getElementById("cartScreen").style.display = "block";
     document.getElementById("profileScreen").style.display = "none";
     document.getElementById("functionOdDiv").style.display = "none";
-
+    body.style.background = "linear-gradient(135deg, #3d1d57, #411f5e)";
     const main = document.getElementById("cartBox");
     main.innerHTML = "";
 
@@ -473,9 +503,42 @@ async function showCart() {
             return;
         }
 
-        orders.reverse(); // latest first
+        let bar_2 = document.createElement("div");
+
+// Main container style
+bar_2.style.background = "linear-gradient(135deg,#2e2e62, #414145)";
+bar_2.style.padding = "12px 15px";
+bar_2.style.width = "100%";
+bar_2.style.display = "flex";
+bar_2.style.alignItems = "center";
+bar_2.style.justifyContent = "space-between";
+bar_2.style.color = "white";
+bar_2.style.borderRadius = "12px";
+bar_2.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+bar_2.style.fontFamily = "Arial, sans-serif";
+
+// Inner content
+bar_2.innerHTML = `
+    <p style="margin:0;font-weight:500;">Load<br><span id="load_can_p" style="font-size:18px;font-weight:bold;">0</span></p>
+    <p style="margin:0;font-weight:500;">Empty<br><span id="empty_can_p" style="font-size:18px;font-weight:bold;">0</span></p>
+    <p style="margin:0;font-weight:500;">Total<br><span id="total_amount_p" style="font-size:18px;font-weight:bold;">0</span></p>
+    <p style="margin:0;font-weight:500;">Paid<br><span id="payed_amount_p" style="font-size:18px;font-weight:bold;color:#4caf50;">0</span></p>
+    <p style="margin:0;font-weight:500;">Pending<br><span id="pending_amount_p" style="font-size:18px;font-weight:bold;color:#ff5252;">0</span></p>
+`;
+
+main.appendChild(bar_2);
+
+
+        let total_amount = 0;
+        let payed_amount = 0;
+        let load_can = 0;
+        let empty_can = 0;
 
         orders.forEach(order => {
+            total_amount += order.status != "cancelled" ? order.total_amount : 0;
+            if (order.payment_status === "paid") payed_amount += order.total_amount;
+            if (order.load) load_can += order.load;
+            if (order.empty) empty_can += order.empty;
 
             const orderDiv = document.createElement("div");
             orderDiv.className = "orderCard";
@@ -514,6 +577,12 @@ async function showCart() {
                         ${order.payment_status === "paid" ? "✔️ paid" : ""}
                     </p>
 
+                    ${order.status === "cancelled" ? `
+                        <button class="deleteOrderBtn"
+                            style="background-color:#495e07;border:none;color:white;border-radius:5px;padding:6px 14px;cursor:pointer;">
+                            Delete
+                        </button>` : ""}
+
                     ${["delivered", "cancelled"].includes(order.status) ? "" : `
                         <button class="cancelOrderBtn"
                             style="
@@ -532,8 +601,8 @@ async function showCart() {
                 </div>
             `;
 
+            // Cancel button logic
             const cancelBtn = orderDiv.querySelector(".cancelOrderBtn");
-
             if (cancelBtn) {
                 cancelBtn.onclick = (e) => {
                     e.stopPropagation();
@@ -558,7 +627,6 @@ async function showCart() {
                     popUp.window.style.display = "flex";
 
                     document.getElementById("confirmCancelBtn").onclick = async () => {
-
                         try {
                             const res = await fetch("http://localhost:5000/cancelOrder", {
                                 method: "POST",
@@ -572,18 +640,10 @@ async function showCart() {
                             const result = await res.json();
 
                             if (result.success) {
-
                                 closePopup();
-
-                                // 🔥 IMPORTANT FIX
-                                await check_order();  // re-check backend status
-
-                                if (!orderPlaced) {
-                                    cancel_order_animation();  // restore red button
-                                }
-
+                                await check_order();
+                                if (!orderPlaced) cancel_order_animation();
                                 showCart();
-
                             } else {
                                 popUp.top.innerText = "Error";
                                 popUp.bottom.innerText = result.message || "Cancel failed";
@@ -601,12 +661,27 @@ async function showCart() {
                 };
             }
 
+            // Delete button logic
+            const deleteBtn = orderDiv.querySelector(".deleteOrderBtn");
+            if (deleteBtn) {
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    delete_order(order.order_id);
+                };
+            }
 
-            // Click card → popup
+            // Card click → order popup
             orderDiv.onclick = () => showOrderPopup(order);
 
             main.appendChild(orderDiv);
         });
+
+        // Update totals
+        document.getElementById("load_can_p").innerText = load_can;
+        document.getElementById("empty_can_p").innerText = empty_can;
+        document.getElementById("total_amount_p").innerText = total_amount;
+        document.getElementById("payed_amount_p").innerText = payed_amount;
+        document.getElementById("pending_amount_p").innerText = total_amount - payed_amount;
 
     } catch (error) {
         console.error("Cart fetch error:", error);
@@ -614,6 +689,12 @@ async function showCart() {
     }
 }
 
+
+function logout() {
+    localStorage.removeItem("jssuser");
+    // reload page
+    location.reload();
+}
 
 
 function showOrderPopup(order) {
@@ -687,6 +768,7 @@ function showOrderPopup(order) {
                 <div style="font-size:13px;color:#ccc;">
                     Unit: ₹${item.unit_price}
                 </div>
+
                 <div style="font-size:14px;margin-top:4px;color:#00ff99;">
                     Total: ₹${item.total}
                 </div>
@@ -705,11 +787,19 @@ function showOrderPopup(order) {
                 <div style="font-size:14px;">
                     🧾 <b>Water Can</b>
                 </div>
-                <div style="font-size:13px;color:#ccc;">
+                <div style="font-size:13px;color:#ccc;margin-top:14px;">
                     Unit: ₹${userdata.percanprice}
                 </div>
+                <div style="font-size:13px;color:#ccc; display:flex;justify-content:space-evenly;align-items:start;margin-top:4px;gap:5px;">
+                    <div style="font-size:13px;color:#ccc;">
+                        Load: ${order.load}
+                    </div>
+                    <div style="font-size:13px;color:#ccc;">
+                        Empty: ${order.empty}
+                    </div>
+                </div>
                 <div style="font-size:14px;margin-top:4px;color:#00ff99;">
-                    Total: ₹${order.total_amount}
+                    Total: ₹${order.total_amount} /- ${order.payment_status === "paid" ? "✔️ Paid" : ""}
                 </div>
             </div>
         `;
@@ -1130,6 +1220,8 @@ function bill() {
                 popUp.top.innerText = "Success";
                 popUp.bottom.innerText = "Order placed successfully";
                 popUp.window.style.display = "flex";
+                orderPlaced = true;
+                show_order_animation();     
                 setTimeout(closePopup, 2500);
             })
            .catch(err => {
@@ -1308,21 +1400,16 @@ window.addEventListener("DOMContentLoaded", function () {
 
 async function check_order() {
     try {
-        const res = await fetch(`http://localhost:5000/getCart/${jssuser}`);
+        const res = await fetch(`http://localhost:5000/hasActiveOrder/${jssuser}`);
         const data = await res.json();
 
-        const orders = data.data || [];
-
-        orderPlaced = orders.some(order =>
-            order.status !== "cancelled" &&
-            order.status !== "delivered"
-        );
-
-    } catch (err) {
-        console.error("Order check failed:", err);
+        orderPlaced = data.active === true;
+    } catch (e) {
+        console.error("Order check failed:", e);
         orderPlaced = false;
     }
 }
+
 
 function show_order_animation(){
     const bigBtn = document.getElementById("bigBtn");
@@ -1449,4 +1536,57 @@ function handleBigBtn() {
 function openPopup() {
     const ov = document.getElementById("popupOverlay");
     if (ov) ov.classList.add("active");
+}
+
+async function delete_order(order_id) {
+
+    popUp.top.innerText = "Delete Order?";
+    popUp.bottom.innerHTML = `
+        <div style="text-align:center;">
+            <p>This action cannot be undone.</p>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+                <button id="confirmDeleteBtn"
+                    style="background:#ff0000;border:none;color:white;border-radius:5px;padding:6px 14px;cursor:pointer;">
+                    Delete
+                </button>
+                <button id="closeDeleteBtn"
+                    style="background:#555;border:none;color:white;border-radius:5px;padding:6px 14px;cursor:pointer;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+
+    popUp.window.style.display = "flex";
+
+    document.getElementById("confirmDeleteBtn").onclick = async () => {
+        try {
+            const res = await fetch("http://localhost:5000/deleteOrder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    order_id: order_id,
+                    user_id: userdata.id
+                })
+            });
+
+            const result = await res.json();
+
+            if (result.success) {
+                closePopup();
+                showCart();  // reload UI
+            } else {
+                popUp.top.innerText = "Error";
+                popUp.bottom.innerText = result.message;
+                setTimeout(closePopup, 2000);
+            }
+
+        } catch (err) {
+            popUp.top.innerText = "Network Error";
+            popUp.bottom.innerText = "Please try again";
+            setTimeout(closePopup, 2000);
+        }
+    };
+
+    document.getElementById("closeDeleteBtn").onclick = closePopup;
 }
